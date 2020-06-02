@@ -122,7 +122,7 @@ models <- list(
 
 
 
-## CCG level  {.tabset .tabset-fade .tabset-pills}
+## CCG level
 
 ### General results
 
@@ -177,7 +177,6 @@ period. Future versions will provide plots for all CCGs.
 
 ```{r plots, eval = TRUE, fig.height = 14} 
 
-
 ## here we can select results to display as we want: based on low p-values, a
 ## fixed number of outliers, a value of k, ...
 
@@ -201,6 +200,9 @@ plots_ccg_top <- lapply(seq_along(res_ccg_top),
 cowplot::plot_grid(plotlist = plots_ccg_top, ncol = 3)
 
 ```
+
+
+
 
 
 
