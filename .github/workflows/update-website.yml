@@ -1,0 +1,61 @@
+# Name of the workflow
+name: update-website
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ master ]
+#  release:
+#    types: [ published ]
+  schedule:
+    - cron:  '00 10 * * *'
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# Important: ubuntu-latest is not set up properly for R, so use macOS
+jobs:
+  update-website-analyses:
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout repos
+        uses: actions/checkout@master
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v1
+
+      - name: Install pandoc and pandoc citeproc
+        run: |
+          brew install pandoc
+          brew install pandoc-citeproc
+    
+      - name: Install R packages
+        run: |
+          pkgs <- c("remotes", "blogdown", "tidyverse", "DT", "cowplot")
+          install.packages(pkgs, repos = "https://cloud.r-project.org/")
+          remotes::install_github("reconhub/epichange@6773b3b520")
+        shell: Rscript {0} 
+ 
+      - name: Install hugo
+        run: |
+          R -e 'blogdown::install_hugo()'
+          
+      - name: Build site
+        run: |
+          to_remove <- list.files(file.path("content", "post"), pattern = ".html$", full.names = TRUE)
+          lapply(to_remove, file.remove)
+          blogdown::build_site(local = TRUE)
+        shell: Rscript {0}
+                 
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add *          
+          git commit -m "Automatic website update (public only)"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true

@@ -1,0 +1,251 @@
+---
+title: "COVID-19 trends by CCG level"
+author: "Thibaut Jombart, Dirk Schumacher"
+date: "`r Sys.Date() - 1`"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      results = "hide",
+                      collapse = TRUE,
+                      dpi = 80,
+                      fig.height = 5,
+                      fig.width = 8,
+                      out.width = "100%",
+                      warning = FALSE,
+                      message = FALSE,
+                      dev = "png")
+```
+
+Using the new algorithm ASMODEE (**A**utomatic **S**election of **M**odels and
+**O**utlier **D**etection for **E**pidemics) we monitor changes in potential
+COVID-19 cases reported through the [NHS
+pathways](https://digital.nhs.uk/dashboards/nhs-pathways), including calls to
+111, 999, and 111-online. These analyses are broken down by Clinical
+Commissioning Groups [(CCG)](https://www.england.nhs.uk/ccgs/). Only the last 6
+weeks of data are used.
+
+**Note**: this research has not been peer-reviewed yet. This website is still
+experimental. Please contact the <a
+href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
+
+
+Models considered here for trend fitting include:
+
+* linear regression of counts over time
+
+* Poisson GLM with a constant rate
+
+* Negative Binomial GLM with a log-linear effect of time
+
+* Negative Binomial GLM with a log-linear effect of time and a 'weekday' effect
+distinguishing weekends, Mondays, and the rest of the week
+
+Analyses are run separately for each CCG.
+
+
+```{r installs}
+
+Sys.setenv(R_REMOTES_NO_ERRORS_FROM_WARNINGS = "true", eval = FALSE)
+repo <- "https://cloud.r-project.org/"
+
+if(!require(tidyverse)) {
+  install.packages("tidyverse", repos = "https://cloud.r-project.org/")
+  library(tidyverse)
+}
+
+if(!require(remotes)) {
+  install.packages("devtools", repos = "https://cloud.r-project.org/")
+  library(devtools)
+}
+
+if(!require(DT)) {
+  install.packages("DT", repos = "https://cloud.r-project.org/")
+  library(DT)
+}
+
+remotes::install_github("reconhub/epichange", upgrade = FALSE)
+library(epichange)
+
+```
+
+
+
+```{r prepare_data}
+
+# download data
+pathways <- tempfile()
+download.file("https://github.com/qleclerc/nhs_pathways_report/raw/master/data/rds/pathways_latest.rds", pathways)
+pathways <- readRDS(pathways)
+
+
+# add variables and subsets
+day_of_week <- function(date) {
+  day_of_week <- weekdays(date)
+  out <- dplyr::case_when(
+    day_of_week %in% c("Saturday", "Sunday") ~ "weekend",
+    day_of_week %in% c("Monday") ~ "monday",
+    TRUE ~ "rest_of_week"
+  )
+  out <- factor(out, levels = c("rest_of_week", "monday", "weekend"))
+  out
+}
+
+pathways <- as_tibble(pathways) %>%
+  mutate(nhs_region = str_to_title(gsub("_"," ",nhs_region)),
+         nhs_region = gsub(" Of ", " of ", nhs_region),
+         nhs_region = gsub(" And ", " and ", nhs_region),
+         day = as.integer(date - min(date, na.rm = TRUE)),
+         weekday = day_of_week(date),
+         ccg_name = sub("_ccg$", "", ccg_name))
+
+first_date <- max(pathways$date, na.rm = TRUE) - 6*7
+pathways_recent <- pathways %>%
+  filter(date >= first_date)
+
+
+
+# define candidate models
+models <- list(
+  regression = lm_model(count ~ day),
+  poisson_constant = glm_model(count ~ 1, family = "poisson"),
+  negbin_time = glm_nb_model(count ~ day),
+  negbin_time_weekday = glm_nb_model(count ~ day + weekday),
+  negbin_time_weekday2 = glm_nb_model(count ~ day * weekday)
+  )
+
+
+```
+
+
+
+
+
+
+## CCG level  {.tabset .tabset-fade .tabset-pills}
+
+### General results
+
+```{r results_ccg}
+
+## analyses by CCG
+## note: this takes about 1 minute to run with AIC model selection,
+## areound 16-17 min with cross validation
+counts_ccg <- pathways_recent %>%
+  group_by(ccg_name, date, day, weekday) %>%
+  summarise(count = sum(count)) %>%
+  complete(date, fill = list(count = 0)) %>% 
+  split(.$ccg_name)
+
+## run asmodee on all CCGs
+res_ccg <- lapply(counts_ccg,
+                  asmodee,
+                  models,
+                  method = evaluate_aic,
+                  alpha = 0.05)
+
+## derive summary stats
+ccg_stats <- lapply(res_ccg, function(e)
+  data.frame(
+    p_value = e$p_value,
+    k = e$k,
+    n_outliers_recent = e$n_outliers_recent,
+    n_outliers = e$n_outliers)) %>%
+  bind_rows(.id = "ccg") %>%
+  arrange(desc(n_outliers),
+          desc(k))
+
+```
+
+
+```{r ccg_table, results = "markup"}
+
+## display table
+ccg_stats %>%
+  mutate(p_value = format.pval(p_value, digits = 3)) %>% 
+  DT::datatable(ccg_stats, rownames = FALSE)
+
+```
+
+
+
+
+### Top 18 CCG
+
+These plots show the 18 CGGs with the most outliers in the considered time
+period. Future versions will provide plots for all CCGs.
+
+```{r plots, eval = TRUE, fig.height = 14} 
+
+
+## here we can select results to display as we want: based on low p-values, a
+## fixed number of outliers, a value of k, ...
+
+## plot results for top ccg
+n_display <- 18
+
+top_ccg <- ccg_stats %>%
+  pull(ccg) %>%
+  head(n_display)
+
+res_ccg_top <- res_ccg[top_ccg]
+plots_ccg_top <- lapply(seq_along(res_ccg_top),
+                           function(i)
+                             plot(res_ccg_top[[i]], "date", point_size = 1, guide = FALSE) +
+                               theme(text = element_text(size = 12),
+                                     axis.text.x = element_text(angle = 45, hjust = 1)) +
+                               scale_x_date(date_label = format("%d %b")) +
+                               labs(x = NULL,
+                                    y = NULL,
+                                    subtitle = names(res_ccg_top)[i]))
+cowplot::plot_grid(plotlist = plots_ccg_top, ncol = 3)
+
+```
+
+
+
+
+
+```{r, eval = FALSE}
+library(ggplot2)
+
+template <- c(
+    "### {{nm}}\n",
+    "```{r, echo = FALSE, dpi = 40, out.width = '100%'}\n",
+    "lapply(res_ccg_split[['{{nm}}']], plot_batch)\n",
+    "```\n",
+    "\n"
+  )
+
+splitting_fac <- rep(1:length(res_ccg), each = 9)[seq_along(res_ccg)]
+res_ccg_split <- split(res_ccg, splitting_fac)
+res_ccg_split_names <- sapply(res_ccg_split,
+                              function(e)
+                                paste(head(names(e), 1), tail(names(e), 1), sep = "_"))
+names(res_ccg_split) <- res_ccg_split_names
+
+plot_batch <- function(e) {
+  all_plots <- lapply(
+    seq_along(e),
+    function(i)
+      plot(e[[i]], 'date', point_size = 1, guide = FALSE) +
+        theme(text = element_text(size = 12),
+              axis.text.x = element_text(angle = 45, hjust = 1)) +
+        scale_x_date(date_label = format('%d %b')) +
+        labs(x = NULL,
+             y = NULL,
+             subtitle = names(e)[i]))
+    cowplot::plot_grid(plotlist = all_plots, ncol = 3)
+}
+
+plots <- lapply(
+  res_ccg_split_names,
+  function(nm) knitr::knit_expand(text = template)
+)
+
+
+Put this outside the chunk, right after
+# `r knitr::knit(text = unlist(plots))`
+
+```
+

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.72.0" />
+
+
+<title>About the data - Potential COVID-19 cases monitoring</title>
+<meta property="og:title" content="About the data - Potential COVID-19 cases monitoring">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+
+<link href='//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/railscasts.min.css' rel='stylesheet' type='text/css' />
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  
+  
+  
+  
+  
+  
+
+  <ul class="nav-links">
+    
+    <li><a href="/">Home</a></li>
+    
+    <li><a href="/about-data/">About the data</a></li>
+    
+    <li><a href="/about-model/">About the model</a></li>
+    
+    <li><a href="https://github.com/thibautjombart/nhs_pathways_monitoring">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+
+    <h1 class="article-title">About the data</h1>
+
+    
+
+    <div class="article-content">
+      <p>We use the <a href="https://digital.nhs.uk/dashboards/nhs-pathways">NHS pathways data</a>
+reporting potential COVID-19 cases in England. These data include all reports
+classified as &lsquo;<em>potential COVID-19 cases</em>&rsquo; notified via calls to 111, 999, and
+<a href="https://111.nhs.uk/">111-online</a> systems. These data are <strong>not confirmed
+cases</strong>, and are subject to unknown reporting biases. They likely include a
+substantial fraction of &lsquo;false positives&rsquo; (cases classified as potential
+COVID-19 which are in fact due to other illness), as well as under-reporting
+(true COVID-19 cases not reported). Last, as these data are using
+self-reporting, it is likely that individual perceptions as well as ease of
+access to the reporting platforms impact the observed numbers.</p>
+<p>For a discussion of how these data can be interpreted and associated caveats,
+see <a href="https://www.medrxiv.org/content/10.1101/2020.05.16.20103820v1">this
+article</a> (under
+review). A shorter version can be found online on <a href="https://cmmid.github.io/topics/covid19/nhs-pathways.html">this
+post</a>.</p>
+<h2 id="data-source">Data source</h2>
+<p>The NHS pathways data used on this website are publicly available from the <a href="https://digital.nhs.uk/dashboards/nhs-pathways">NHS
+dashboard</a>.  We use a version
+in which additional and information (NHS regions) has been added, daily updated
+from Quentin Leclerc&rsquo;s github
+<a href="https://github.com/qleclerc/nhs_pathways_report">repository</a>.</p>
+<h2 id="getting-the-latest-data-in-r">Getting the latest data in R</h2>
+<p>You can get the latest version of these data using R by typing the following
+commands:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r">
+pathways <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">tempfile</span>()
+url <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">paste0</span>(<span style="color:#e6db74">&#34;https://github.com/qleclerc/nhs_pathways_report/&#34;</span>,
+              <span style="color:#e6db74">&#34;raw/master/data/rds/pathways_latest.rds&#34;</span>)
+<span style="color:#a6e22e">download.file</span>(url, pathways)
+pathways <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">readRDS</span>(pathways)
+              
+</code></pre></div><p>In addition, if you want to use identical NHS regions and the &lsquo;week of day&rsquo;
+variable, which distinguishes weekends, Mondays and other days of the week, use
+the following code:</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(tidyverse)
+
+<span style="color:#75715e"># add variables and subsets</span>
+day_of_week <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">function</span>(date) {
+  day_of_week <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">weekdays</span>(date)
+  out <span style="color:#f92672">&lt;-</span> dplyr<span style="color:#f92672">::</span><span style="color:#a6e22e">case_when</span>(
+    day_of_week <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Saturday&#34;</span>, <span style="color:#e6db74">&#34;Sunday&#34;</span>) <span style="color:#f92672">~</span> <span style="color:#e6db74">&#34;weekend&#34;</span>,
+    day_of_week <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Monday&#34;</span>) <span style="color:#f92672">~</span> <span style="color:#e6db74">&#34;monday&#34;</span>,
+    <span style="color:#66d9ef">TRUE</span> <span style="color:#f92672">~</span> <span style="color:#e6db74">&#34;rest_of_week&#34;</span>
+  )
+  out <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">factor</span>(out, levels <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;rest_of_week&#34;</span>, <span style="color:#e6db74">&#34;monday&#34;</span>, <span style="color:#e6db74">&#34;weekend&#34;</span>))
+  out
+}
+
+pathways <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as_tibble</span>(pathways) <span style="color:#f92672">%&gt;%</span>
+  <span style="color:#a6e22e">mutate</span>(nhs_region <span style="color:#f92672">=</span> stringr<span style="color:#f92672">::</span><span style="color:#a6e22e">str_to_title</span>(<span style="color:#a6e22e">gsub</span>(<span style="color:#e6db74">&#34;_&#34;</span>, <span style="color:#e6db74">&#34; &#34;</span>, nhs_region)),
+         nhs_region <span style="color:#f92672">=</span> <span style="color:#a6e22e">gsub</span>(<span style="color:#e6db74">&#34; Of &#34;</span>, <span style="color:#e6db74">&#34; of &#34;</span>, nhs_region),
+         nhs_region <span style="color:#f92672">=</span> <span style="color:#a6e22e">gsub</span>(<span style="color:#e6db74">&#34; And &#34;</span>, <span style="color:#e6db74">&#34; and &#34;</span>, nhs_region),
+         day <span style="color:#f92672">=</span> <span style="color:#a6e22e">as.integer</span>(date <span style="color:#f92672">-</span> <span style="color:#a6e22e">min</span>(date, na.rm <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>)),
+         weekday <span style="color:#f92672">=</span> <span style="color:#a6e22e">day_of_week</span>(date))
+
+</code></pre></div>
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+
+
+
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/r.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/languages/yaml.min.js"></script>
+<script>hljs.configure({languages: []}); hljs.initHighlightingOnLoad();</script>
+
+
+
+    
+
+    
+  </body>
+</html>
+

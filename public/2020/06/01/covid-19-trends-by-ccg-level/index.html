@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.72.0" />
+
+
+<title>COVID-19 trends by CCG level - Potential COVID-19 cases monitoring</title>
+<meta property="og:title" content="COVID-19 trends by CCG level - Potential COVID-19 cases monitoring">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  
+  
+  
+  
+  
+  
+
+  <ul class="nav-links">
+    
+    <li><a href="/">Home</a></li>
+    
+    <li><a href="/about-data/">About the data</a></li>
+    
+    <li><a href="/about-model/">About the model</a></li>
+    
+    <li><a href="https://github.com/thibautjombart/nhs_pathways_monitoring">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">1 min read</span>
+    
+
+    <h1 class="article-title">COVID-19 trends by CCG level</h1>
+
+    
+    <span class="article-date">2020-06-01</span>
+    
+
+    <div class="article-content">
+      
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/datatables-binding/datatables.js"></script>
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.min.css" rel="stylesheet" />
+<link href="/rmarkdown-libs/dt-core/css/jquery.dataTables.extra.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dt-core/js/jquery.dataTables.min.js"></script>
+<link href="/rmarkdown-libs/crosstalk/css/crosstalk.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/crosstalk/js/crosstalk.min.js"></script>
+
+
+<p>Using the new algorithm ASMODEE (<strong>A</strong>utomatic <strong>S</strong>election of <strong>M</strong>odels and
+<strong>O</strong>utlier <strong>D</strong>etection for <strong>E</strong>pidemics) we monitor changes in potential
+COVID-19 cases reported through the <a href="https://digital.nhs.uk/dashboards/nhs-pathways">NHS
+pathways</a>, including calls to
+111, 999, and 111-online. These analyses are broken down by Clinical
+Commissioning Groups <a href="https://www.england.nhs.uk/ccgs/">(CCG)</a>. Only the last 6
+weeks of data are used.</p>
+<p><strong>Note</strong>: this research has not been peer-reviewed yet. This website is still
+experimental. Please contact the <a
+href="mailto:thibautjombart@gmail.com">authors</a> before using its content.</p>
+<p>Models considered here for trend fitting include:</p>
+<ul>
+<li><p>linear regression of counts over time</p></li>
+<li><p>Poisson GLM with a constant rate</p></li>
+<li><p>Negative Binomial GLM with a log-linear effect of time</p></li>
+<li><p>Negative Binomial GLM with a log-linear effect of time and a ‘weekday’ effect
+distinguishing weekends, Mondays, and the rest of the week</p></li>
+</ul>
+<p>Analyses are run separately for each CCG.</p>
+<div id="ccg-level" class="section level2">
+<h2>CCG level</h2>
+<p><img src="/post/2020-05-31-analyses-ccg_files/figure-html/results_ccg-1.png" width="100%" /></p>
+<div id="htmlwidget-1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"none","data":[["nhs_sunderland","nhs_tameside_and_glossop","nhs_barking_and_dagenham","nhs_barnsley","nhs_basildon_and_brentwood","nhs_bassetlaw","nhs_bath_and_north_east_somerset_swindon_and_wiltshire","nhs_bedfordshire","nhs_berkshire_west","nhs_birmingham_and_solihull","nhs_blackburn_with_darwen","nhs_blackpool","nhs_bolton","nhs_bradford_district_and_craven","nhs_brent","nhs_brighton_and_hove","nhs_bristol_north_somerset_and_south_gloucestershire","nhs_buckinghamshire","nhs_bury","nhs_calderdale","nhs_cambridgeshire_and_peterborough","nhs_cannock_chase","nhs_castle_point_and_rochford","nhs_central_london_westminster","nhs_cheshire","nhs_chorley_and_south_ribble","nhs_city_and_hackney","nhs_county_durham","nhs_coventry_and_rugby","nhs_derby_and_derbyshire","nhs_devon","nhs_doncaster","nhs_dorset","nhs_dudley","nhs_ealing","nhs_east_and_north_hertfordshire","nhs_east_berkshire","nhs_east_lancashire","nhs_east_leicestershire_and_rutland","nhs_east_riding_of_yorkshire","nhs_east_staffordshire","nhs_east_sussex","nhs_fareham_and_gosport","nhs_fylde_and_wyre","nhs_gloucestershire","nhs_greater_huddersfield","nhs_greater_preston","nhs_halton","nhs_hammersmith_and_fulham","nhs_harrow","nhs_havering","nhs_herefordshire_and_worcestershire","nhs_herts_valleys","nhs_heywood_middleton_and_rochdale","nhs_hillingdon","nhs_hounslow","nhs_hull","nhs_ipswich_and_east_suffolk","nhs_isle_of_wight","nhs_kent_and_medway","nhs_kernow","nhs_knowsley","nhs_leeds","nhs_leicester_city","nhs_lincolnshire","nhs_liverpool","nhs_luton","nhs_manchester","nhs_mid_essex","nhs_milton_keynes","nhs_morecambe_bay","nhs_newcastle_gateshead","nhs_newham","nhs_norfolk_and_waveney","nhs_north_central_london","nhs_north_cumbria","nhs_north_east_essex","nhs_north_east_hampshire_and_farnham","nhs_north_east_lincolnshire","nhs_north_hampshire","nhs_north_kirklees","nhs_north_lincolnshire","nhs_north_staffordshire","nhs_north_tyneside","nhs_north_yorkshire","nhs_northamptonshire","nhs_northumberland","nhs_nottingham_and_nottinghamshire","nhs_oldham","nhs_oxfordshire","nhs_portsmouth","nhs_redbridge","nhs_rotherham","nhs_salford","nhs_sandwell_and_west_birmingham","nhs_sheffield","nhs_shropshire","nhs_somerset","nhs_south_east_london","nhs_south_east_staffordshire_and_seisdon_peninsula","nhs_south_eastern_hampshire","nhs_south_sefton","nhs_south_tyneside","nhs_south_warwickshire","nhs_south_west_london","nhs_southampton","nhs_southend","nhs_southport_and_formby","nhs_st_helens","nhs_stafford_and_surrounds","nhs_stockport","nhs_stoke_on_trent","nhs_surrey_heartlands","nhs_surrey_heath","nhs_tees_valley","nhs_telford_and_wrekin","nhs_thurrock","nhs_tower_hamlets","nhs_trafford","nhs_vale_of_york","nhs_wakefield","nhs_walsall","nhs_waltham_forest","nhs_warrington","nhs_warwickshire_north","nhs_west_essex","nhs_west_hampshire","nhs_west_lancashire","nhs_west_leicestershire","nhs_west_london","nhs_west_suffolk","nhs_west_sussex","nhs_wigan_borough","nhs_wirral","nhs_wolverhampton","null"],["0.1666","0.1666","0.6405","0.3648","0.6405","0.1666","0.1666","0.3648","0.3648","0.1666","0.1666","0.6405","0.3648","0.3648","0.0623","0.1666","0.6405","0.6405","0.0623","0.3648","0.3648","0.6405","0.6405","0.6405","0.1666","0.8898","0.3648","0.3648","0.1666","0.3648","0.6405","0.3648","0.3648","0.3648","0.3648","0.6405","0.3648","0.0623","0.1666","0.1666","0.3648","0.3648","0.0623","0.3648","0.3648","0.0623","0.3648","0.3648","0.1666","0.6405","0.3648","0.3648","0.3648","0.1666","0.6405","0.0623","0.6405","0.6405","0.0623","0.3648","0.3648","0.3648","0.3648","0.1666","0.0623","0.0623","0.3648","0.6405","0.3648","0.3648","0.3648","0.3648","0.1666","0.3648","0.1666","0.6405","0.6405","0.3648","0.6405","0.3648","0.3648","0.6405","0.6405","0.0194","0.3648","0.1666","0.3648","0.1666","0.1666","0.1666","0.6405","0.3648","0.0194","0.0623","0.3648","0.1666","0.3648","0.1666","0.3648","0.0623","0.1666","0.3648","0.3648","0.1666","0.1666","0.3648","0.0623","0.3648","0.1666","0.1666","0.3648","0.6405","0.3648","0.3648","0.3648","0.3648","0.3648","0.6405","0.3648","0.0623","0.6405","0.1666","0.6405","0.3648","0.8898","0.3648","0.6405","0.3648","0.3648","0.1666","0.6405","0.6405","0.3648","0.6405","0.1666","0.1666"],[2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[3,3,1,2,1,3,3,2,2,3,3,1,2,2,4,3,1,1,4,2,2,1,1,1,3,0,2,2,3,2,1,2,2,2,2,1,2,4,3,3,2,2,4,2,2,4,2,2,3,1,2,2,2,3,1,4,1,1,4,2,2,2,2,3,4,4,2,1,2,2,2,2,3,2,3,1,1,2,1,2,2,1,1,5,2,3,2,3,3,3,1,2,5,4,2,3,2,3,2,4,3,2,2,3,3,2,4,2,3,3,2,1,2,2,2,2,2,1,2,4,1,3,1,2,0,2,1,2,2,3,1,1,2,1,3,3]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>ccg<\/th>\n      <th>p_value<\/th>\n      <th>k<\/th>\n      <th>n_outliers_recent<\/th>\n      <th>n_outliers<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"ccg":["nhs_sunderland","nhs_tameside_and_glossop","nhs_barking_and_dagenham","nhs_barnsley","nhs_basildon_and_brentwood","nhs_bassetlaw","nhs_bath_and_north_east_somerset_swindon_and_wiltshire","nhs_bedfordshire","nhs_berkshire_west","nhs_birmingham_and_solihull","nhs_blackburn_with_darwen","nhs_blackpool","nhs_bolton","nhs_bradford_district_and_craven","nhs_brent","nhs_brighton_and_hove","nhs_bristol_north_somerset_and_south_gloucestershire","nhs_buckinghamshire","nhs_bury","nhs_calderdale","nhs_cambridgeshire_and_peterborough","nhs_cannock_chase","nhs_castle_point_and_rochford","nhs_central_london_westminster","nhs_cheshire","nhs_chorley_and_south_ribble","nhs_city_and_hackney","nhs_county_durham","nhs_coventry_and_rugby","nhs_derby_and_derbyshire","nhs_devon","nhs_doncaster","nhs_dorset","nhs_dudley","nhs_ealing","nhs_east_and_north_hertfordshire","nhs_east_berkshire","nhs_east_lancashire","nhs_east_leicestershire_and_rutland","nhs_east_riding_of_yorkshire","nhs_east_staffordshire","nhs_east_sussex","nhs_fareham_and_gosport","nhs_fylde_and_wyre","nhs_gloucestershire","nhs_greater_huddersfield","nhs_greater_preston","nhs_halton","nhs_hammersmith_and_fulham","nhs_harrow","nhs_havering","nhs_herefordshire_and_worcestershire","nhs_herts_valleys","nhs_heywood_middleton_and_rochdale","nhs_hillingdon","nhs_hounslow","nhs_hull","nhs_ipswich_and_east_suffolk","nhs_isle_of_wight","nhs_kent_and_medway","nhs_kernow","nhs_knowsley","nhs_leeds","nhs_leicester_city","nhs_lincolnshire","nhs_liverpool","nhs_luton","nhs_manchester","nhs_mid_essex","nhs_milton_keynes","nhs_morecambe_bay","nhs_newcastle_gateshead","nhs_newham","nhs_norfolk_and_waveney","nhs_north_central_london","nhs_north_cumbria","nhs_north_east_essex","nhs_north_east_hampshire_and_farnham","nhs_north_east_lincolnshire","nhs_north_hampshire","nhs_north_kirklees","nhs_north_lincolnshire","nhs_north_staffordshire","nhs_north_tyneside","nhs_north_yorkshire","nhs_northamptonshire","nhs_northumberland","nhs_nottingham_and_nottinghamshire","nhs_oldham","nhs_oxfordshire","nhs_portsmouth","nhs_redbridge","nhs_rotherham","nhs_salford","nhs_sandwell_and_west_birmingham","nhs_sheffield","nhs_shropshire","nhs_somerset","nhs_south_east_london","nhs_south_east_staffordshire_and_seisdon_peninsula","nhs_south_eastern_hampshire","nhs_south_sefton","nhs_south_tyneside","nhs_south_warwickshire","nhs_south_west_london","nhs_southampton","nhs_southend","nhs_southport_and_formby","nhs_st_helens","nhs_stafford_and_surrounds","nhs_stockport","nhs_stoke_on_trent","nhs_surrey_heartlands","nhs_surrey_heath","nhs_tees_valley","nhs_telford_and_wrekin","nhs_thurrock","nhs_tower_hamlets","nhs_trafford","nhs_vale_of_york","nhs_wakefield","nhs_walsall","nhs_waltham_forest","nhs_warrington","nhs_warwickshire_north","nhs_west_essex","nhs_west_hampshire","nhs_west_lancashire","nhs_west_leicestershire","nhs_west_london","nhs_west_suffolk","nhs_west_sussex","nhs_wigan_borough","nhs_wirral","nhs_wolverhampton","null"],"p_value":[0.166598664675305,0.166598664675305,0.640455113969982,0.364844730196547,0.640455113969982,0.166598664675305,0.166598664675305,0.364844730196547,0.364844730196547,0.166598664675305,0.166598664675305,0.640455113969982,0.364844730196547,0.364844730196547,0.0622586301904401,0.166598664675305,0.640455113969982,0.640455113969982,0.0622586301904401,0.364844730196547,0.364844730196547,0.640455113969982,0.640455113969982,0.640455113969982,0.166598664675305,0.889816889764995,0.364844730196547,0.364844730196547,0.166598664675305,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.364844730196547,0.364844730196547,0.640455113969982,0.364844730196547,0.0622586301904401,0.166598664675305,0.166598664675305,0.364844730196547,0.364844730196547,0.0622586301904401,0.364844730196547,0.364844730196547,0.0622586301904401,0.364844730196547,0.364844730196547,0.166598664675305,0.640455113969982,0.364844730196547,0.364844730196547,0.364844730196547,0.166598664675305,0.640455113969982,0.0622586301904401,0.640455113969982,0.640455113969982,0.0622586301904401,0.364844730196547,0.364844730196547,0.364844730196547,0.364844730196547,0.166598664675305,0.0622586301904401,0.0622586301904401,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.364844730196547,0.364844730196547,0.166598664675305,0.364844730196547,0.166598664675305,0.640455113969982,0.640455113969982,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.640455113969982,0.640455113969982,0.0194243002440221,0.364844730196547,0.166598664675305,0.364844730196547,0.166598664675305,0.166598664675305,0.166598664675305,0.640455113969982,0.364844730196547,0.0194243002440221,0.0622586301904401,0.364844730196547,0.166598664675305,0.364844730196547,0.166598664675305,0.364844730196547,0.0622586301904401,0.166598664675305,0.364844730196547,0.364844730196547,0.166598664675305,0.166598664675305,0.364844730196547,0.0622586301904401,0.364844730196547,0.166598664675305,0.166598664675305,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.364844730196547,0.364844730196547,0.364844730196547,0.640455113969982,0.364844730196547,0.0622586301904401,0.640455113969982,0.166598664675305,0.640455113969982,0.364844730196547,0.889816889764995,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.166598664675305,0.640455113969982,0.640455113969982,0.364844730196547,0.640455113969982,0.166598664675305,0.166598664675305],"k":[2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"n_outliers_recent":[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"n_outliers":[3,3,1,2,1,3,3,2,2,3,3,1,2,2,4,3,1,1,4,2,2,1,1,1,3,0,2,2,3,2,1,2,2,2,2,1,2,4,3,3,2,2,4,2,2,4,2,2,3,1,2,2,2,3,1,4,1,1,4,2,2,2,2,3,4,4,2,1,2,2,2,2,3,2,3,1,1,2,1,2,2,1,1,5,2,3,2,3,3,3,1,2,5,4,2,3,2,3,2,4,3,2,2,3,3,2,4,2,3,3,2,1,2,2,2,2,2,1,2,4,1,3,1,2,0,2,1,2,2,3,1,1,2,1,3,3],"columnDefs":[{"className":"dt-right","targets":[2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+
