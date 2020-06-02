@@ -124,8 +124,6 @@ models <- list(
 
 ## CCG level
 
-### General results
-
 ```{r results_ccg}
 
 ## analyses by CCG
@@ -158,16 +156,6 @@ ccg_stats <- lapply(res_ccg, function(e)
 ```
 
 
-```{r ccg_table, results = "markup"}
-
-## display table
-ccg_stats %>%
-  mutate(p_value = format.pval(p_value, digits = 3)) %>% 
-  DT::datatable(ccg_stats, rownames = FALSE)
-
-```
-
-
 
 
 ### Top 18 CCG
@@ -175,7 +163,7 @@ ccg_stats %>%
 These plots show the 18 CGGs with the most outliers in the considered time
 period. Future versions will provide plots for all CCGs.
 
-```{r plots, eval = TRUE, fig.height = 14} 
+```{r plots, eval = TRUE, fig.height = 14, out.width = "100%"} 
 
 ## here we can select results to display as we want: based on low p-values, a
 ## fixed number of outliers, a value of k, ...
@@ -204,6 +192,16 @@ cowplot::plot_grid(plotlist = plots_ccg_top, ncol = 3)
 
 
 
+### Table summary for all CCGs
+
+```{r ccg_table, results = "markup"}
+
+## display table
+ccg_stats %>%
+  mutate(p_value = format.pval(p_value, digits = 3)) %>% 
+  DT::datatable(ccg_stats, rownames = FALSE)
+
+```
 
 
 
