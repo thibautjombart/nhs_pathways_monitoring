@@ -33,7 +33,7 @@ jobs:
         run: |
           pkgs <- c("remotes", "blogdown", "tidyverse", "DT", "cowplot")
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
-          remotes::install_github("reconhub/epichange@6773b3b520")
+          remotes::install_github("reconhub/trendbreaker@6773b3b520")
         shell: Rscript {0} 
  
       - name: Install hugo

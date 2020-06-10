@@ -85,24 +85,24 @@ individuals) falling outside are classified as &lsquo;outliers&rsquo;. The value
 be fixed by the user, or automatically selected to minimise outliers in the
 training period and maximise and the detection of outliers in the recent period.</p>
 <h2 id="implementation">Implementation</h2>
-<h3 id="r-package-epichange">R package <em>epichange</em></h3>
+<h3 id="r-package-trendbreaker">R package <em>trendbreaker</em></h3>
 <p>ASMODEE is implemented in the R package
-<a href="https://github.com/reconhub/epichange"><em>epichange</em></a>, hosted by the <a href="https://www.repidemicsconsortium.org/">R Epidemics
+<a href="https://github.com/reconhub/trendbreaker"><em>trendbreaker</em></a>, hosted by the <a href="https://www.repidemicsconsortium.org/">R Epidemics
 Consortium</a>.</p>
 <h3 id="try-it-out">Try it out</h3>
-<p>You can install <em>epichange</em> from R by typing:</p>
+<p>You can install <em>trendbreaker</em> from R by typing:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">if </span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">require</span>(remotes)) {
   <span style="color:#a6e22e">install.packages</span>(<span style="color:#e6db74">&#34;remotes&#34;</span>)
 }
-remotes<span style="color:#f92672">::</span><span style="color:#a6e22e">install_github</span>(<span style="color:#e6db74">&#34;reconhub/epichange&#34;</span>)
+remotes<span style="color:#f92672">::</span><span style="color:#a6e22e">install_github</span>(<span style="color:#e6db74">&#34;reconhub/trendbreaker&#34;</span>)
 </code></pre></div><p>To try the package, first check the documentation of <code>asmodee</code>, and run the example:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(epichange)
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(trendbreaker)
 <span style="color:#f92672">?</span>asmodee
 <span style="color:#a6e22e">example</span>(asmodee)
 </code></pre></div><h3 id="contributions">Contributions</h3>
 <p>This package is still under
 development. Contributions are most welcome. A good place to start would be to
-look at the current <a href="https://github.com/reconhub/epichange/issues">issues</a>.</p>
+look at the current <a href="https://github.com/reconhub/trendbreaker/issues">issues</a>.</p>
 
     </div>
   </article>

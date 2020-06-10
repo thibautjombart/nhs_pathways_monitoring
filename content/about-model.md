@@ -26,28 +26,28 @@ training period and maximise and the detection of outliers in the recent period.
 
 ## Implementation
 
-### R package *epichange*
+### R package *trendbreaker*
 
 ASMODEE is implemented in the R package
-[*epichange*](https://github.com/reconhub/epichange), hosted by the [R Epidemics
+[*trendbreaker*](https://github.com/reconhub/trendbreaker), hosted by the [R Epidemics
 Consortium](https://www.repidemicsconsortium.org/). 
 
 
 ### Try it out
 
-You can install *epichange* from R by typing:
+You can install *trendbreaker* from R by typing:
 
 ```r
 if (!require(remotes)) {
   install.packages("remotes")
 }
-remotes::install_github("reconhub/epichange")
+remotes::install_github("reconhub/trendbreaker")
 ```
 
 To try the package, first check the documentation of `asmodee`, and run the example:
 
 ```r
-library(epichange)
+library(trendbreaker)
 ?asmodee
 example(asmodee)
 ```
@@ -56,4 +56,4 @@ example(asmodee)
 
 This package is still under
 development. Contributions are most welcome. A good place to start would be to
-look at the current [issues](https://github.com/reconhub/epichange/issues).
+look at the current [issues](https://github.com/reconhub/trendbreaker/issues).

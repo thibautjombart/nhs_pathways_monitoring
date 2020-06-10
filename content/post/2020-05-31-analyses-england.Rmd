@@ -64,8 +64,8 @@ if(!require(DT)) {
   library(DT)
 }
 
-remotes::install_github("reconhub/epichange", upgrade = FALSE)
-library(epichange)
+remotes::install_github("reconhub/trendbreaker", upgrade = FALSE)
+library(trendbreaker)
 
 ```
 
