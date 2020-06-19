@@ -23,7 +23,8 @@ COVID-19 cases reported through the [NHS
 pathways](https://digital.nhs.uk/dashboards/nhs-pathways), including calls to
 111, 999, and 111-online. These analyses are broken down by Clinical
 Commissioning Groups [(CCG)](https://www.england.nhs.uk/ccgs/). Only the last 6
-weeks of data are used.
+weeks of data are used. The last week of data is not used to define the temporal
+trend so that recent outliers can be detected.
 
 **Note**: this research has not been peer-reviewed yet. This website is still
 experimental. Please contact the <a
@@ -139,7 +140,7 @@ counts_ccg <- pathways_recent %>%
 res_ccg <- lapply(counts_ccg,
                   asmodee,
                   models,
-                  method = evaluate_aic,
+                  fixed_k = 7,
                   alpha = 0.05)
 
 ## derive summary stats
@@ -150,26 +151,26 @@ ccg_stats <- lapply(res_ccg, function(e)
     n_outliers_recent = e$n_outliers_recent,
     n_outliers = e$n_outliers)) %>%
   bind_rows(.id = "ccg") %>%
-  arrange(desc(n_outliers),
-          desc(k))
+  arrange(desc(n_outliers_recent),
+          desc(n_outliers))
 
 ```
 
 
 
 
-### Top 18 CCG
+### Top 25 CCG
 
-These plots show the 18 CGGs with the most outliers in the considered time
+These plots show the 25 CGGs with the most outliers in the considered time
 period. Future versions will provide plots for all CCGs.
 
-```{r plots, eval = TRUE, fig.height = 14, out.width = "100%"} 
+```{r plots, eval = TRUE, fig.height = 19, out.width = "100%"} 
 
 ## here we can select results to display as we want: based on low p-values, a
 ## fixed number of outliers, a value of k, ...
 
 ## plot results for top ccg
-n_display <- 18
+n_display <- 25
 
 top_ccg <- ccg_stats %>%
   pull(ccg) %>%
