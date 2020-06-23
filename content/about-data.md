@@ -45,32 +45,3 @@ download.file(url, pathways)
 pathways <- readRDS(pathways)
               
 ```
-
-In addition, if you want to use identical NHS regions and the 'week of day'
-variable, which distinguishes weekends, Mondays and other days of the week, use
-the following code:
-
-```r
-library(tidyverse)
-
-# add variables and subsets
-day_of_week <- function(date) {
-  day_of_week <- weekdays(date)
-  out <- dplyr::case_when(
-    day_of_week %in% c("Saturday", "Sunday") ~ "weekend",
-    day_of_week %in% c("Monday") ~ "monday",
-    TRUE ~ "rest_of_week"
-  )
-  out <- factor(out, levels = c("rest_of_week", "monday", "weekend"))
-  out
-}
-
-pathways <- as_tibble(pathways) %>%
-  mutate(nhs_region = stringr::str_to_title(gsub("_", " ", nhs_region)),
-         nhs_region = gsub(" Of ", " of ", nhs_region),
-         nhs_region = gsub(" And ", " and ", nhs_region),
-         day = as.integer(date - min(date, na.rm = TRUE)),
-         weekday = day_of_week(date))
-
-```
-
