@@ -80,29 +80,18 @@ download.file("https://github.com/qleclerc/nhs_pathways_report/raw/master/data/r
 pathways <- readRDS(pathways)
 
 
-# add variables and subsets
-day_of_week <- function(date) {
-  day_of_week <- weekdays(date)
-  out <- dplyr::case_when(
-    day_of_week %in% c("Saturday", "Sunday") ~ "weekend",
-    day_of_week %in% c("Monday") ~ "monday",
-    TRUE ~ "rest_of_week"
-  )
-  out <- factor(out, levels = c("rest_of_week", "monday", "weekend"))
-  out
-}
-
 pathways <- as_tibble(pathways) %>%
-  mutate(nhs_region = str_to_title(gsub("_"," ",nhs_region)),
-         nhs_region = gsub(" Of ", " of ", nhs_region),
-         nhs_region = gsub(" And ", " and ", nhs_region),
-         day = as.integer(date - min(date, na.rm = TRUE)),
-         weekday = day_of_week(date),
-         ccg_name = sub("_ccg$", "", ccg_name))
+  mutate(ccg_name = sub("_ccg$", "", ccg_name))
 
-first_date <- max(pathways$date, na.rm = TRUE) - 6*7
+## last_date <- as.Date("2020-06-15")
+last_date <- max(pathways$date, na.rm = TRUE)
+first_date <- last_date - 6*7
 pathways_recent <- pathways %>%
-  filter(date >= first_date)
+  filter(date >= first_date,
+         date <= last_date)
+
+pathways_recent_calls <- pathways_recent %>%
+  filter(site_type %in% c("111", "999"))
 
 
 
@@ -112,7 +101,8 @@ models <- list(
   poisson_constant = glm_model(count ~ 1, family = "poisson"),
   negbin_time = glm_nb_model(count ~ day),
   negbin_time_weekday = glm_nb_model(count ~ day + weekday),
-  negbin_time_weekday2 = glm_nb_model(count ~ day * weekday)
+  negbin_time_weekday2 = glm_nb_model(count ~ day * weekday),
+  negbin_poly2_time_weekday = glm_nb_model(count ~ poly(day, 2) + weekday)
   )
 
 
@@ -123,35 +113,45 @@ models <- list(
 
 
 
-## CCG level
+## Results: 111/999 calls
 
-```{r results_ccg}
+Recent observations suggest that 111/999 calls may be more reflective of actual
+dynamics than 111-online. Therefore, this section only shows analyses based on
+these data. See next section for results using the whole dataset, i.e. including
+111/999 calls and 111-online.
+
+```{r results_ccg_calls}
 
 ## analyses by CCG
 ## note: this takes about 1 minute to run with AIC model selection,
-## areound 16-17 min with cross validation
-counts_ccg <- pathways_recent %>%
+## around 16-17 min with cross validation
+counts_ccg_calls <- pathways_recent_calls %>%
   group_by(ccg_name, date, day, weekday) %>%
   summarise(count = sum(count)) %>%
   complete(date, fill = list(count = 0)) %>% 
   split(.$ccg_name)
 
+## to keep only e.g. Leicester
+## counts_ccg <- counts_ccg[grep("leicester", names(counts_ccg))]
+
 ## run asmodee on all CCGs
-res_ccg <- lapply(counts_ccg,
-                  asmodee,
-                  models,
-                  fixed_k = 7,
-                  alpha = 0.05)
+res_ccg_calls <- lapply(counts_ccg_calls,
+                        asmodee,
+                        models,
+                        fixed_k = 7,
+                        alpha = 0.05)
 
 ## derive summary stats
-ccg_stats <- lapply(res_ccg, function(e)
+ccg_calls_stats <- lapply(res_ccg_calls, function(e)
   data.frame(
     p_value = e$p_value,
     k = e$k,
     n_outliers_recent = e$n_outliers_recent,
-    n_outliers = e$n_outliers)) %>%
+    n_outliers = e$n_outliers,
+    n_recent_increase = sum(tail(e$results$classification, 7) == "increase"))
+  ) %>%
   bind_rows(.id = "ccg") %>%
-  arrange(desc(n_outliers_recent),
+  arrange(desc(n_recent_increase),
           desc(n_outliers))
 
 ```
@@ -161,10 +161,10 @@ ccg_stats <- lapply(res_ccg, function(e)
 
 ### Top 25 CCG
 
-These plots show the 25 CGGs with the most outliers in the considered time
-period. Future versions will provide plots for all CCGs.
+These plots show the 25 CGGs with the most increases in the last 7 days. Future
+versions will provide plots for all CCGs.
 
-```{r plots, eval = TRUE, fig.height = 19, out.width = "100%"} 
+```{r plots_calls, eval = TRUE, fig.height = 19, out.width = "100%"} 
 
 ## here we can select results to display as we want: based on low p-values, a
 ## fixed number of outliers, a value of k, ...
@@ -172,21 +172,21 @@ period. Future versions will provide plots for all CCGs.
 ## plot results for top ccg
 n_display <- 25
 
-top_ccg <- ccg_stats %>%
+top_ccg_calls <- ccg_calls_stats %>%
   pull(ccg) %>%
   head(n_display)
 
-res_ccg_top <- res_ccg[top_ccg]
-plots_ccg_top <- lapply(seq_along(res_ccg_top),
+res_ccg_calls_top <- res_ccg_calls[top_ccg_calls]
+plots_ccg_calls_top <- lapply(seq_along(res_ccg_calls_top),
                            function(i)
-                             plot(res_ccg_top[[i]], "date", point_size = 1, guide = FALSE) +
+                             plot(res_ccg_calls_top[[i]], "date", point_size = 1, guide = FALSE) +
                                theme(text = element_text(size = 12),
                                      axis.text.x = element_text(angle = 45, hjust = 1)) +
                                scale_x_date(date_label = format("%d %b")) +
                                labs(x = NULL,
                                     y = NULL,
-                                    subtitle = names(res_ccg_top)[i]))
-cowplot::plot_grid(plotlist = plots_ccg_top, ncol = 3)
+                                    subtitle = names(res_ccg_calls_top)[i]))
+cowplot::plot_grid(plotlist = plots_ccg_calls_top, ncol = 3)
 
 ```
 
@@ -195,17 +195,120 @@ cowplot::plot_grid(plotlist = plots_ccg_top, ncol = 3)
 
 ### Table summary for all CCGs
 
-```{r ccg_table, results = "markup"}
+```{r ccg_calls_table, results = "markup"}
 
 ## display table
-ccg_stats %>%
+ccg_calls_stats %>%
   mutate(p_value = format.pval(p_value, digits = 3)) %>% 
-  DT::datatable(ccg_stats, rownames = FALSE)
+  DT::datatable(ccg_calls_stats, rownames = FALSE)
 
 ```
 
 
 
+
+
+
+## Results: 111/999 calls and 111-online
+
+These results reproduce the analyses above using all data, i.e. also including
+111-online calls.
+
+
+```{r results_ccg_all}
+
+## analyses by CCG
+## note: this takes about 1 minute to run with AIC model selection,
+## around 16-17 min with cross validation
+counts_ccg_all <- pathways_recent %>%
+  group_by(ccg_name, date, day, weekday) %>%
+  summarise(count = sum(count)) %>%
+  complete(date, fill = list(count = 0)) %>% 
+  split(.$ccg_name)
+
+## to keep only e.g. Leicester
+## counts_ccg <- counts_ccg[grep("leicester", names(counts_ccg))]
+
+## run asmodee on all CCGs
+res_ccg_all <- lapply(counts_ccg_all,
+                        asmodee,
+                        models,
+                        fixed_k = 7,
+                        alpha = 0.05)
+
+## derive summary stats
+ccg_all_stats <- lapply(res_ccg_all, function(e)
+  data.frame(
+    p_value = e$p_value,
+    k = e$k,
+    n_outliers_recent = e$n_outliers_recent,
+    n_outliers = e$n_outliers,
+    n_recent_increase = sum(tail(e$results$classification, 7) == "increase"))
+  ) %>%
+  bind_rows(.id = "ccg") %>%
+  arrange(desc(n_recent_increase),
+          desc(n_outliers))
+
+```
+
+
+
+
+### Top 25 CCG
+
+These plots show the 25 CGGs with the most increases in the last 7 days. Future
+versions will provide plots for all CCGs.
+
+```{r plots_all, eval = TRUE, fig.height = 19, out.width = "100%"} 
+
+## here we can select results to display as we want: based on low p-values, a
+## fixed number of outliers, a value of k, ...
+
+## plot results for top ccg
+n_display <- 25
+
+top_ccg_all <- ccg_all_stats %>%
+  pull(ccg) %>%
+  head(n_display)
+
+res_ccg_all_top <- res_ccg_all[top_ccg_all]
+plots_ccg_all_top <- lapply(seq_along(res_ccg_all_top),
+                           function(i)
+                             plot(res_ccg_all_top[[i]], "date", point_size = 1, guide = FALSE) +
+                               theme(text = element_text(size = 12),
+                                     axis.text.x = element_text(angle = 45, hjust = 1)) +
+                               scale_x_date(date_label = format("%d %b")) +
+                               labs(x = NULL,
+                                    y = NULL,
+                                    subtitle = names(res_ccg_all_top)[i]))
+cowplot::plot_grid(plotlist = plots_ccg_all_top, ncol = 3)
+
+```
+
+
+
+
+### Table summary for all CCGs
+
+```{r ccg_all_table, results = "markup"}
+
+## display table
+ccg_all_stats %>%
+  mutate(p_value = format.pval(p_value, digits = 3)) %>% 
+  DT::datatable(ccg_all_stats, rownames = FALSE)
+
+```
+
+
+
+
+
+
+
+
+<!-- ------------------------- -->
+<!-- This is not used for now. -->
+<!-- ------------------------- -->
 
 ```{r, eval = FALSE}
 library(ggplot2)
