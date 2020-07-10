@@ -101,8 +101,7 @@ models <- list(
   poisson_constant = glm_model(count ~ 1, family = "poisson"),
   negbin_time = glm_nb_model(count ~ day),
   negbin_time_weekday = glm_nb_model(count ~ day + weekday),
-  negbin_time_weekday2 = glm_nb_model(count ~ day * weekday),
-  negbin_poly2_time_weekday = glm_nb_model(count ~ poly(day, 2) + weekday)
+  negbin_time_weekday2 = glm_nb_model(count ~ day * weekday)
   )
 
 
