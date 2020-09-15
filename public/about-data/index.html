@@ -101,30 +101,6 @@ url <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">paste0<
 <span style="color:#a6e22e">download.file</span>(url, pathways)
 pathways <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">readRDS</span>(pathways)
               
-</code></pre></div><p>In addition, if you want to use identical NHS regions and the &lsquo;week of day&rsquo;
-variable, which distinguishes weekends, Mondays and other days of the week, use
-the following code:</p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-r" data-lang="r"><span style="color:#a6e22e">library</span>(tidyverse)
-
-<span style="color:#75715e"># add variables and subsets</span>
-day_of_week <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">function</span>(date) {
-  day_of_week <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">weekdays</span>(date)
-  out <span style="color:#f92672">&lt;-</span> dplyr<span style="color:#f92672">::</span><span style="color:#a6e22e">case_when</span>(
-    day_of_week <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Saturday&#34;</span>, <span style="color:#e6db74">&#34;Sunday&#34;</span>) <span style="color:#f92672">~</span> <span style="color:#e6db74">&#34;weekend&#34;</span>,
-    day_of_week <span style="color:#f92672">%in%</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;Monday&#34;</span>) <span style="color:#f92672">~</span> <span style="color:#e6db74">&#34;monday&#34;</span>,
-    <span style="color:#66d9ef">TRUE</span> <span style="color:#f92672">~</span> <span style="color:#e6db74">&#34;rest_of_week&#34;</span>
-  )
-  out <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">factor</span>(out, levels <span style="color:#f92672">=</span> <span style="color:#a6e22e">c</span>(<span style="color:#e6db74">&#34;rest_of_week&#34;</span>, <span style="color:#e6db74">&#34;monday&#34;</span>, <span style="color:#e6db74">&#34;weekend&#34;</span>))
-  out
-}
-
-pathways <span style="color:#f92672">&lt;-</span> <span style="color:#a6e22e">as_tibble</span>(pathways) <span style="color:#f92672">%&gt;%</span>
-  <span style="color:#a6e22e">mutate</span>(nhs_region <span style="color:#f92672">=</span> stringr<span style="color:#f92672">::</span><span style="color:#a6e22e">str_to_title</span>(<span style="color:#a6e22e">gsub</span>(<span style="color:#e6db74">&#34;_&#34;</span>, <span style="color:#e6db74">&#34; &#34;</span>, nhs_region)),
-         nhs_region <span style="color:#f92672">=</span> <span style="color:#a6e22e">gsub</span>(<span style="color:#e6db74">&#34; Of &#34;</span>, <span style="color:#e6db74">&#34; of &#34;</span>, nhs_region),
-         nhs_region <span style="color:#f92672">=</span> <span style="color:#a6e22e">gsub</span>(<span style="color:#e6db74">&#34; And &#34;</span>, <span style="color:#e6db74">&#34; and &#34;</span>, nhs_region),
-         day <span style="color:#f92672">=</span> <span style="color:#a6e22e">as.integer</span>(date <span style="color:#f92672">-</span> <span style="color:#a6e22e">min</span>(date, na.rm <span style="color:#f92672">=</span> <span style="color:#66d9ef">TRUE</span>)),
-         weekday <span style="color:#f92672">=</span> <span style="color:#a6e22e">day_of_week</span>(date))
-
 </code></pre></div>
     </div>
   </article>
