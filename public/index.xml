@@ -6,26 +6,26 @@
     <description>Recent content on Potential COVID-19 cases monitoring</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 14 Sep 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 16 Sep 2020 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>COVID-19 trends by CCG level</title>
-      <link>/2020/09/14/covid-19-trends-by-ccg-level/</link>
-      <pubDate>Mon, 14 Sep 2020 00:00:00 +0000</pubDate>
+      <link>/2020/09/16/covid-19-trends-by-ccg-level/</link>
+      <pubDate>Wed, 16 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/2020/09/14/covid-19-trends-by-ccg-level/</guid>
+      <guid>/2020/09/16/covid-19-trends-by-ccg-level/</guid>
       <description>Using the new algorithm ASMODEE (Automatic Selection of Models and Outlier Detection for Epidemics) we monitor changes in potential COVID-19 cases reported through the NHS pathways, including calls to 111, 999, and 111-online. These analyses are broken down by Clinical Commissioning Groups (CCG). Only the last 6 weeks of data are used. The last week of data is not used to define the temporal trend so that recent outliers can be detected.</description>
     </item>
     
     <item>
       <title>COVID-19 trends in England</title>
-      <link>/2020/09/14/covid-19-trends-in-england/</link>
-      <pubDate>Mon, 14 Sep 2020 00:00:00 +0000</pubDate>
+      <link>/2020/09/16/covid-19-trends-in-england/</link>
+      <pubDate>Wed, 16 Sep 2020 00:00:00 +0000</pubDate>
       
-      <guid>/2020/09/14/covid-19-trends-in-england/</guid>
+      <guid>/2020/09/16/covid-19-trends-in-england/</guid>
       <description>Using the new algorithm ASMODEE (Automatic Selection of Models and Outlier Detection for Epidemics) we monitor changes in potential COVID-19 cases reported through the NHS pathways, including calls to 111, 999, and 111-online. Only the last 6 weeks of data are used.
 Note: this research has not been peer-reviewed yet. This website is still experimental. Please contact the authors before using its content.
 Models considered here for trend fitting include:</description>
