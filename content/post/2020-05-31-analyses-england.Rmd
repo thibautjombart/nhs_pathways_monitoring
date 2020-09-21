@@ -76,28 +76,13 @@ library(trendbreaker)
 # download data
 pathways <- tempfile()
 download.file("https://github.com/qleclerc/nhs_pathways_report/raw/master/data/rds/pathways_latest.rds", pathways)
-pathways <- readRDS(pathways)
+pathways <- readRDS(pathways) %>%
+  as_tibble(pathways)
 
 
-# add variables and subsets
-day_of_week <- function(date) {
-  day_of_week <- weekdays(date)
-  out <- dplyr::case_when(
-    day_of_week %in% c("Saturday", "Sunday") ~ "weekend",
-    day_of_week %in% c("Monday") ~ "monday",
-    TRUE ~ "rest_of_week"
-  )
-  out <- factor(out, levels = c("rest_of_week", "monday", "weekend"))
-  out
-}
 
-pathways <- as_tibble(pathways) %>%
-  mutate(nhs_region = str_to_title(gsub("_", " ", nhs_region)),
-         nhs_region = gsub(" Of ", " of ", nhs_region),
-         nhs_region = gsub(" And ", " and ", nhs_region),
-         day = as.integer(date - min(date, na.rm = TRUE)),
-         weekday = day_of_week(date),
-         ccg_name = sub("_ccg$", "", ccg_name))
+pathways <- pathways %>%
+  mutate(ccg_name = sub("_ccg$", "", ccg_name))
 
 first_date <- max(pathways$date, na.rm = TRUE) - 6*7
 pathways_recent <- pathways %>%
@@ -129,8 +114,12 @@ counts_england <- pathways_recent %>%
   summarise(count = sum(count))
 
 
-## results with automated detection of 'k'
-res_england <- asmodee(counts_england, models, method = evaluate_aic)
+## results with 'k' fixed to 7 days
+res_england <- asmodee(counts_england,
+                       models,
+                       method = evaluate_aic,
+                       alpha = 0.05,
+                       fixed_k = 7)
 plot(res_england, "date") +
   theme(text = element_text(size = 16),
         axis.text.x = element_text(angle = 45, hjust = 1)) +
@@ -156,7 +145,8 @@ res_nhs_region <- lapply(counts_nhs_region,
                          asmodee,
                          models,
                          method = evaluate_aic,
-                         alpha = 0.05)
+                         alpha = 0.05,
+                         fixed_k = 7)
 
 plots_nhs_region <- lapply(seq_along(res_nhs_region),
                            function(i)
