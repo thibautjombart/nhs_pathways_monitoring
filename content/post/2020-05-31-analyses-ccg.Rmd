@@ -65,6 +65,11 @@ if(!require(DT)) {
   library(DT)
 }
 
+if(!require(incidence2)) {
+  install.packages("incidence2", repos = "https://cloud.r-project.org/")
+  library(incidence2
+}
+
 remotes::install_github("reconhub/trendbreaker", upgrade = FALSE)
 library(trendbreaker)
 
@@ -79,6 +84,17 @@ pathways <- tempfile()
 download.file("https://github.com/qleclerc/nhs_pathways_report/raw/master/data/rds/pathways_latest.rds", pathways)
 pathways <- readRDS(pathways)
 
+# function to assign custom day of the week to dates
+day_of_week <- function(date) {
+  day_of_week <- weekdays(date)
+  out <- dplyr::case_when(
+    day_of_week %in% c("Saturday", "Sunday") ~ "weekend",
+    day_of_week %in% c("Monday") ~ "monday",
+    TRUE ~ "rest_of_week"
+  )
+  out <- factor(out, levels = c("rest_of_week", "monday", "weekend"))
+  out
+}
 
 pathways <- as_tibble(pathways) %>%
   mutate(ccg_name = sub("_ccg$", "", ccg_name))
@@ -125,10 +141,11 @@ these data. See next section for results using the whole dataset, i.e. including
 ## note: this takes about 1 minute to run with AIC model selection,
 ## around 16-17 min with cross validation
 counts_ccg_calls <- pathways_recent_calls %>%
-  group_by(ccg_name, date, day, weekday) %>%
-  summarise(count = sum(count)) %>%
-  complete(date, fill = list(count = 0)) %>% 
+  incidence(date = date, groups = ccg_name, count = count) %>%
+  mutate(day = as.integer(date - min(date)),
+         weekday = day_of_week(date)) %>%
   split(.$ccg_name)
+
 
 ## to keep only e.g. Leicester
 ## counts_ccg <- counts_ccg[grep("leicester", names(counts_ccg))]
@@ -137,6 +154,7 @@ counts_ccg_calls <- pathways_recent_calls %>%
 res_ccg_calls <- lapply(counts_ccg_calls,
                         asmodee,
                         models,
+                        method = evaluate_aic,
                         fixed_k = 7,
                         alpha = 0.05)
 
@@ -230,10 +248,11 @@ counts_ccg_all <- pathways_recent %>%
 
 ## run asmodee on all CCGs
 res_ccg_all <- lapply(counts_ccg_all,
-                        asmodee,
-                        models,
-                        fixed_k = 7,
-                        alpha = 0.05)
+                      asmodee,
+                      models,
+                      method = evaluate_aic,
+                      fixed_k = 7,
+                      alpha = 0.05)
 
 ## derive summary stats
 ccg_all_stats <- lapply(res_ccg_all, function(e)
