@@ -1,9 +1,75 @@
----
-title: "COVID-19 trends by CCG level"
-author: "Thibaut Jombart, Dirk Schumacher"
-date: "2020-09-27"
----
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Hugo 0.72.0" />
 
+
+<title>COVID-19 trends by CCG level - Potential COVID-19 cases monitoring</title>
+<meta property="og:title" content="COVID-19 trends by CCG level - Potential COVID-19 cases monitoring">
+
+
+  <link href='/favicon.ico' rel='icon' type='image/x-icon'/>
+
+
+
+  
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/css/fonts.css" media="all">
+<link rel="stylesheet" href="/css/main.css" media="all">
+
+
+
+  </head>
+  <body>
+    <div class="wrapper">
+      <header class="header">
+        <nav class="nav">
+  
+  
+  
+  
+  
+  
+
+  <ul class="nav-links">
+    
+    <li><a href="/">Home</a></li>
+    
+    <li><a href="/about-data/">About the data</a></li>
+    
+    <li><a href="/about-model/">About the model</a></li>
+    
+    <li><a href="https://github.com/thibautjombart/nhs_pathways_monitoring">GitHub</a></li>
+    
+  </ul>
+</nav>
+
+      </header>
+
+
+<main class="content" role="main">
+
+  <article class="article">
+    
+    <span class="article-duration">4 min read</span>
+    
+
+    <h1 class="article-title">COVID-19 trends by CCG level</h1>
+
+    
+    <span class="article-date">2020-09-27</span>
+    
+
+    <div class="article-content">
+      
 <script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
 <script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
 <link href="/rmarkdown-libs/datatables-css/datatables-crosstalk.css" rel="stylesheet" />
@@ -69,3 +135,35 @@ given the chosen alpha threshold (5%).</p>
 <script type="application/json" data-for="htmlwidget-1">{"x":{"filter":"top","filterHTML":"<tr>\n  <td data-type=\"character\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"0\" data-max=\"6\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"disabled\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"integer\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"0\" data-max=\"6\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n  <td data-type=\"number\" style=\"vertical-align: top;\">\n    <div class=\"form-group has-feedback\" style=\"margin-bottom: auto;\">\n      <input type=\"search\" placeholder=\"All\" class=\"form-control\" style=\"width: 100%;\"/>\n      <span class=\"glyphicon glyphicon-remove-circle form-control-feedback\"><\/span>\n    <\/div>\n    <div style=\"display: none; position: absolute; width: 200px;\">\n      <div data-min=\"0.005146190261882\" data-max=\"0.889816889764995\" data-scale=\"15\"><\/div>\n      <span style=\"float: left;\"><\/span>\n      <span style=\"float: right;\"><\/span>\n    <\/div>\n  <\/td>\n<\/tr>","data":[["NHS kent and medway","NHS south east london","NHS birmingham and solihull","NHS nottingham and nottinghamshire","NHS devon","NHS south west london","NHS derby and derbyshire","NHS norfolk and waveney","NHS surrey heartlands","NHS bristol north somerset and south gloucestershire","NHS tees valley","NHS north central london","NHS bath and north east somerset swindon and wiltshire","NHS oxfordshire","NHS dorset","NHS herefordshire and worcestershire","NHS leeds","NHS cambridgeshire and peterborough","NHS lincolnshire","NHS west sussex","NHS liverpool","NHS northamptonshire","NHS cheshire","NHS sheffield","NHS east and north hertfordshire","NHS herts valleys","NHS gloucestershire","NHS county durham","NHS west hampshire","NHS berkshire west","NHS kernow","NHS buckinghamshire","NHS sandwell and west birmingham","NHS bradford district and craven","NHS somerset","NHS coventry and rugby","NHS east berkshire","NHS ipswich and east suffolk","NHS newcastle gateshead","NHS mid essex","NHS manchester","NHS bedfordshire","NHS wigan borough","NHS sunderland","NHS east sussex","NHS dudley","NHS doncaster","NHS west leicestershire","NHS north east essex","NHS northumberland","NHS wakefield","NHS wolverhampton","NHS walsall","NHS east leicestershire and rutland","NHS stoke on trent","NHS north yorkshire","NHS wirral","NHS rotherham","NHS tameside and glossop","NHS east lancashire","NHS shropshire","NHS north cumbria","NHS milton keynes","NHS west essex","NHS stockport","NHS leicester city","NHS vale of york","NHS brent","NHS ealing","NHS north hampshire","NHS morecambe bay","NHS basildon and brentwood","NHS redbridge","NHS harrow","NHS bolton","NHS south east staffordshire and seisdon peninsula","NHS tower hamlets","NHS hillingdon","NHS west suffolk","NHS north east hampshire and farnham","NHS north tyneside","NHS warrington","NHS telford and wrekin","NHS st helens","NHS salford","NHS barnsley","NHS havering","NHS north staffordshire","NHS hounslow","NHS hull","NHS east riding of yorkshire","NHS warwickshire north","NHS newham","NHS waltham forest","NHS southampton","NHS luton","NHS portsmouth","NHS south warwickshire","NHS halton","NHS chorley and south ribble","NHS knowsley","NHS south sefton","NHS greater preston","NHS trafford","NHS barking and dagenham","NHS fareham and gosport","NHS southend","NHS calderdale","NHS south eastern hampshire","NHS brighton and hove","NHS north lincolnshire","NHS fylde and wyre","NHS greater huddersfield","NHS oldham","NHS cannock chase","NHS isle of wight","NHS blackpool","NHS thurrock","NHS north east lincolnshire","NHS bury","NHS castle point and rochford","NHS north kirklees","NHS heywood middleton and rochdale","NHS stafford and surrounds","NHS south tyneside","NHS west lancashire","NHS blackburn with darwen","NHS city and hackney","NHS bassetlaw","NHS east staffordshire","NHS hammersmith and fulham","NHS surrey heath","NHS west london","NHS southport and formby","NHS central london westminster","null"],[4,4,3,3,4,3,4,3,5,3,4,3,4,4,4,4,0,3,3,3,3,4,4,3,3,4,4,4,4,4,3,3,3,3,3,3,4,6,2,4,0,2,3,5,3,4,3,4,3,3,0,3,3,5,4,1,3,3,3,3,3,4,3,4,1,4,3,3,4,3,4,4,2,3,3,3,3,3,3,4,2,3,2,2,1,1,3,4,4,3,1,3,2,3,4,4,2,4,4,2,3,2,1,1,2,1,2,2,2,1,2,3,0,2,4,2,2,4,3,1,2,0,0,4,0,2,1,2,3,1,6,2,4,0,0,1],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[4,4,3,3,4,3,4,3,5,3,4,3,4,4,4,4,0,3,3,3,3,4,4,3,3,4,4,4,4,4,3,3,3,3,3,3,4,6,2,4,0,2,3,5,3,4,3,4,3,3,0,3,3,5,4,1,3,3,3,3,3,4,3,4,1,4,3,3,4,3,4,4,2,3,3,3,3,3,3,4,2,3,2,2,1,1,3,4,4,3,1,3,2,3,4,4,2,4,4,2,3,2,1,1,2,1,2,2,2,1,2,3,0,2,4,2,2,4,3,1,2,0,0,4,0,2,1,2,3,1,6,2,4,0,0,1],[0.0622586301904401,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.166598664675305,0.0194243002440221,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.889816889764995,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.00514619026188276,0.364844730196547,0.0622586301904401,0.889816889764995,0.166598664675305,0.166598664675305,0.0194243002440221,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.166598664675305,0.166598664675305,0.889816889764995,0.166598664675305,0.166598664675305,0.0194243002440221,0.0622586301904401,0.640455113969982,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.640455113969982,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.0622586301904401,0.364844730196547,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.364844730196547,0.166598664675305,0.364844730196547,0.364844730196547,0.640455113969982,0.640455113969982,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.166598664675305,0.640455113969982,0.166598664675305,0.364844730196547,0.166598664675305,0.0622586301904401,0.0194243002440221,0.364844730196547,0.0622586301904401,0.0622586301904401,0.364844730196547,0.166598664675305,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.640455113969982,0.364844730196547,0.166598664675305,0.364844730196547,0.640455113969982,0.364844730196547,0.166598664675305,0.889816889764995,0.364844730196547,0.0622586301904401,0.364844730196547,0.364844730196547,0.0622586301904401,0.166598664675305,0.640455113969982,0.364844730196547,0.889816889764995,0.889816889764995,0.0622586301904401,0.889816889764995,0.364844730196547,0.640455113969982,0.364844730196547,0.166598664675305,0.640455113969982,0.00514619026188276,0.364844730196547,0.0194243002440221,0.889816889764995,0.889816889764995,0.640455113969982]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th>ccg<\/th>\n      <th>changes<\/th>\n      <th>increase<\/th>\n      <th>decrease<\/th>\n      <th>p_value<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"ccg":["nhs_kent_and_medway","nhs_south_east_london","nhs_birmingham_and_solihull","nhs_nottingham_and_nottinghamshire","nhs_devon","nhs_south_west_london","nhs_derby_and_derbyshire","nhs_norfolk_and_waveney","nhs_surrey_heartlands","nhs_bristol_north_somerset_and_south_gloucestershire","nhs_tees_valley","nhs_north_central_london","nhs_bath_and_north_east_somerset_swindon_and_wiltshire","nhs_oxfordshire","nhs_dorset","nhs_herefordshire_and_worcestershire","nhs_leeds","nhs_cambridgeshire_and_peterborough","nhs_lincolnshire","nhs_west_sussex","nhs_liverpool","nhs_northamptonshire","nhs_cheshire","nhs_sheffield","nhs_east_and_north_hertfordshire","nhs_herts_valleys","nhs_gloucestershire","nhs_county_durham","nhs_west_hampshire","nhs_berkshire_west","nhs_kernow","nhs_buckinghamshire","nhs_sandwell_and_west_birmingham","nhs_bradford_district_and_craven","nhs_somerset","nhs_coventry_and_rugby","nhs_east_berkshire","nhs_ipswich_and_east_suffolk","nhs_newcastle_gateshead","nhs_mid_essex","nhs_manchester","nhs_bedfordshire","nhs_wigan_borough","nhs_sunderland","nhs_east_sussex","nhs_dudley","nhs_doncaster","nhs_west_leicestershire","nhs_north_east_essex","nhs_northumberland","nhs_wakefield","nhs_wolverhampton","nhs_walsall","nhs_east_leicestershire_and_rutland","nhs_stoke_on_trent","nhs_north_yorkshire","nhs_wirral","nhs_rotherham","nhs_tameside_and_glossop","nhs_east_lancashire","nhs_shropshire","nhs_north_cumbria","nhs_milton_keynes","nhs_west_essex","nhs_stockport","nhs_leicester_city","nhs_vale_of_york","nhs_brent","nhs_ealing","nhs_north_hampshire","nhs_morecambe_bay","nhs_basildon_and_brentwood","nhs_redbridge","nhs_harrow","nhs_bolton","nhs_south_east_staffordshire_and_seisdon_peninsula","nhs_tower_hamlets","nhs_hillingdon","nhs_west_suffolk","nhs_north_east_hampshire_and_farnham","nhs_north_tyneside","nhs_warrington","nhs_telford_and_wrekin","nhs_st_helens","nhs_salford","nhs_barnsley","nhs_havering","nhs_north_staffordshire","nhs_hounslow","nhs_hull","nhs_east_riding_of_yorkshire","nhs_warwickshire_north","nhs_newham","nhs_waltham_forest","nhs_southampton","nhs_luton","nhs_portsmouth","nhs_south_warwickshire","nhs_halton","nhs_chorley_and_south_ribble","nhs_knowsley","nhs_south_sefton","nhs_greater_preston","nhs_trafford","nhs_barking_and_dagenham","nhs_fareham_and_gosport","nhs_southend","nhs_calderdale","nhs_south_eastern_hampshire","nhs_brighton_and_hove","nhs_north_lincolnshire","nhs_fylde_and_wyre","nhs_greater_huddersfield","nhs_oldham","nhs_cannock_chase","nhs_isle_of_wight","nhs_blackpool","nhs_thurrock","nhs_north_east_lincolnshire","nhs_bury","nhs_castle_point_and_rochford","nhs_north_kirklees","nhs_heywood_middleton_and_rochdale","nhs_stafford_and_surrounds","nhs_south_tyneside","nhs_west_lancashire","nhs_blackburn_with_darwen","nhs_city_and_hackney","nhs_bassetlaw","nhs_east_staffordshire","nhs_hammersmith_and_fulham","nhs_surrey_heath","nhs_west_london","nhs_southport_and_formby","nhs_central_london_westminster","null"],"p_value":[0.0622586301904401,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.166598664675305,0.0194243002440221,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.889816889764995,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.00514619026188276,0.364844730196547,0.0622586301904401,0.889816889764995,0.166598664675305,0.166598664675305,0.0194243002440221,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.166598664675305,0.166598664675305,0.889816889764995,0.166598664675305,0.166598664675305,0.0194243002440221,0.0622586301904401,0.640455113969982,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.640455113969982,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.0622586301904401,0.0622586301904401,0.364844730196547,0.166598664675305,0.166598664675305,0.166598664675305,0.0622586301904401,0.166598664675305,0.166598664675305,0.0622586301904401,0.364844730196547,0.166598664675305,0.364844730196547,0.364844730196547,0.640455113969982,0.640455113969982,0.0622586301904401,0.0622586301904401,0.0622586301904401,0.166598664675305,0.640455113969982,0.166598664675305,0.364844730196547,0.166598664675305,0.0622586301904401,0.0194243002440221,0.364844730196547,0.0622586301904401,0.0622586301904401,0.364844730196547,0.166598664675305,0.364844730196547,0.640455113969982,0.364844730196547,0.364844730196547,0.640455113969982,0.364844730196547,0.166598664675305,0.364844730196547,0.640455113969982,0.364844730196547,0.166598664675305,0.889816889764995,0.364844730196547,0.0622586301904401,0.364844730196547,0.364844730196547,0.0622586301904401,0.166598664675305,0.640455113969982,0.364844730196547,0.889816889764995,0.889816889764995,0.0622586301904401,0.889816889764995,0.364844730196547,0.640455113969982,0.364844730196547,0.166598664675305,0.640455113969982,0.00514619026188276,0.364844730196547,0.0194243002440221,0.889816889764995,0.889816889764995,0.640455113969982],"k":[7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7],"n_outliers_recent":[4,4,3,3,4,3,4,3,5,3,4,3,4,4,4,4,0,3,3,3,3,4,4,3,3,4,4,4,4,4,3,3,3,3,3,3,4,6,2,4,0,2,3,5,3,4,3,4,3,3,0,3,3,5,4,1,3,3,3,3,3,4,3,4,1,4,3,3,4,3,4,4,2,3,3,3,3,3,3,4,2,3,2,2,1,1,3,4,4,3,1,3,2,3,4,4,2,4,4,2,3,2,1,1,2,1,2,2,2,1,2,3,0,2,4,2,2,4,3,1,2,0,0,4,0,2,1,2,3,1,6,2,4,0,0,1],"n_outliers":[4,4,3,3,4,3,4,3,5,3,4,3,4,4,4,4,0,3,3,3,3,4,4,3,3,4,4,4,4,4,4,3,3,3,3,3,4,6,2,4,0,3,3,5,3,4,3,4,3,3,0,3,3,5,4,1,3,3,3,3,3,4,3,4,1,4,3,3,4,3,4,4,2,3,3,3,4,3,3,4,2,3,2,2,1,1,4,4,4,3,1,3,2,3,4,5,2,4,4,2,3,2,1,2,2,1,2,3,2,1,2,3,0,2,4,2,2,4,3,1,2,0,0,4,0,2,1,2,3,1,6,2,5,0,0,1],"n_recent_increase":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"n_recent_decrease":[4,4,3,3,4,3,4,3,5,3,4,3,4,4,4,4,0,3,3,3,3,4,4,3,3,4,4,4,4,4,3,3,3,3,3,3,4,6,2,4,0,2,3,5,3,4,3,4,3,3,0,3,3,5,4,1,3,3,3,3,3,4,3,4,1,4,3,3,4,3,4,4,2,3,3,3,3,3,3,4,2,3,2,2,1,1,3,4,4,3,1,3,2,3,4,4,2,4,4,2,3,2,1,1,2,1,2,2,2,1,2,3,0,2,4,2,2,4,3,1,2,0,0,4,0,2,1,2,3,1,6,2,4,0,0,1],"last_pred":[1475.14237888045,1072.26873003654,976.371767559457,929.780354017041,910.819444322069,887.50226422771,877.883947134158,859.763483071765,748.595193056714,697.116743669873,624.385775438953,596.391033752065,590.066085152903,580.037105311801,559.222211793079,551.130809694885,550.958193750438,549.557214616415,539.148647401675,506.521429058001,503.838711955067,493.651570670212,492.973383352726,492.31322391321,478.557564457979,474.444402402888,467.97396425072,464.469791151955,447.047618579116,434.795870304612,432.747473818355,430.127455647809,410.271055381155,393.944277796387,385.238280135413,379.858307084182,340.192623916217,335.639668346435,333.139340466757,329.706574902882,319.729929060071,297.734867900996,289.873864298749,286.111648390934,285.924525496669,285.070225711399,281.241237453746,272.595604875634,271.401875051702,267.215085769443,250.106132659029,248.898625754706,246.517974095465,245.168442175437,241.13004415943,236.437063249026,235.326505265453,233.098811469109,230.612637997291,227.032329433566,224.550697696911,223.969799293159,222.234872069751,221.848909189774,219.353146366865,215.157231312358,214.042570053668,205.823077888292,202.799326741362,200.651107644064,200.357067195693,200.074439313176,198.559336899418,196.71984917587,194.073277766374,193.198864490486,192.518231808781,190.810827506696,188.934136031619,187.807118762742,187.182442493989,183.750157077562,179.554037725006,179.408185502796,176.827800195696,174.765936254769,174.634481740074,174.168090916938,172.561646775817,170.674599626106,170.566902797885,169.676673346225,166.620045968188,164.886047708195,161.588171424655,160.064913938643,159.99573776228,158.115466740268,157.66105141636,155.187065220288,151.516619488495,151.102322567434,147.130209901896,145.225095390987,135.185252091936,135.14356566028,132.555620416201,130.710150948952,129.899586883439,128.761493816168,128.566907129238,128.424578696158,127.671311542497,126.461159556041,124.987463105082,120.37651186244,117.580848690175,116.152754814421,114.599550361756,113.589016974043,112.292152636483,112.102113373334,111.472249118976,111.031881694893,96.56147153434,94.9275473933565,94.5087157856973,90.4298574583552,89.9534779484051,84.3315758653582,83.0575673336887,76.8473129076904,76.7645097229951,55.3400254028148,44.1012273654109,10.0924009080333],"columnDefs":[{"className":"dt-right","targets":[1,2,3,4]}],"order":[],"autoWidth":false,"orderClasses":false,"orderCellsTop":true}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
+
+    </div>
+  </article>
+
+  
+
+
+</main>
+
+      <footer class="footer">
+        <ul class="footer-links">
+          <li>
+            <a href="/index.xml" type="application/rss+xml" target="_blank">RSS feed</a>
+          </li>
+          <li>
+            <a href="https://gohugo.io/" class="footer-links-kudos">Made with <img src="/images/hugo-logo.png" alt="Img link to Hugo website" width="22" height="22"></a>
+          </li>
+        </ul>
+      </footer>
+
+    </div>
+    
+
+    
+<script src="/js/math-code.js"></script>
+<script async src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+
+    
+  </body>
+</html>
+

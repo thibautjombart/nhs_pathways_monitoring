@@ -67,7 +67,7 @@ if(!require(DT)) {
 
 if(!require(incidence2)) {
   install.packages("incidence2", repos = "https://cloud.r-project.org/")
-  library(incidence2
+  library(incidence2)
 }
 
 remotes::install_github("reconhub/trendbreaker", upgrade = FALSE)
@@ -84,7 +84,8 @@ pathways <- tempfile()
 download.file("https://github.com/qleclerc/nhs_pathways_report/raw/master/data/rds/pathways_latest.rds", pathways)
 pathways <- readRDS(pathways)
 
-# function to assign custom day of the week to dates
+## No longer used, but left as backup
+## # function to assign custom day of the week to dates
 day_of_week <- function(date) {
   day_of_week <- weekdays(date)
   out <- dplyr::case_when(
@@ -115,11 +116,17 @@ pathways_recent_calls <- pathways_recent %>%
 models <- list(
   regression = lm_model(count ~ day),
   poisson_constant = glm_model(count ~ 1, family = "poisson"),
-  negbin_time = glm_nb_model(count ~ day),
-  negbin_time_weekday = glm_nb_model(count ~ day + weekday),
-  negbin_time_weekday2 = glm_nb_model(count ~ day * weekday)
+  ## quasipoisson_time = glm_model(count ~ day, family = "quasipoisson"),
+  ## quasipoisson_time_weekday = glm_model(count ~ day + weekday, family = "quasipoisson"),
+  ## quasipoisson_time_weekday2 = glm_model(count ~ day * weekday, family = "quasipoisson")
+  negbin_time = glm_nb_model(count ~ day,
+                             control = glm.control(maxit = 1e3)),
+  negbin_time_weekday = glm_nb_model(count ~ day + weekday,
+                                     control = glm.control(maxit = 1e3))
   )
 
+
+ 
 
 ```
 
@@ -128,154 +135,120 @@ models <- list(
 
 
 
-## Results: 111/999 calls
+## Results: 111/999 calls and 111-online.
 
-Recent observations suggest that 111/999 calls may be more reflective of actual
-dynamics than 111-online. Therefore, this section only shows analyses based on
-these data. See next section for results using the whole dataset, i.e. including
-111/999 calls and 111-online.
+These analyses use calls to 111 and 999, as well as NHS 111-online reports of
+potential COVID-19 cases. Only CCGs with at least 10 cases in the training set
+are used in the analyses, as time series with lower counts currently cause
+errors in some of the model candidates. This will be addressed in further
+improvements to the [*trending*](https://github.com/reconhub/trending/issues/10)
+package.
 
 ```{r results_ccg_calls}
 
-## analyses by CCG
-## note: this takes about 1 minute to run with AIC model selection,
-## around 16-17 min with cross validation
-counts_ccg_calls <- pathways_recent_calls %>%
+# analyses by CCG
+
+## get count by CCG
+counts_ccg_all <- pathways_recent %>%
   incidence(date = date, groups = ccg_name, count = count) %>%
   mutate(day = as.integer(date - min(date)),
          weekday = day_of_week(date)) %>%
-  split(.$ccg_name)
+  split(.$ccg_name) %>%
+  lapply(as.data.frame)
 
+## remove all CCGs with no cases in training set; this is due to the current
+## impossibility of negbin GLM to handle these cases, but we are working on a
+## fix so that some of the models in the model candidates can fail on the data
+## and ASMODEE still work
+n_cases_in_training <- counts_ccg_all %>%
+  lapply(function(e)
+    e %>%
+      filter(day < 36) %>%
+      summarise(n = sum(count))) %>%
+  unlist()
+to_keep <- n_cases_in_training > 10
+counts_ccg_all <- counts_ccg_all[to_keep]
 
 ## to keep only e.g. Leicester
 ## counts_ccg <- counts_ccg[grep("leicester", names(counts_ccg))]
 
 ## run asmodee on all CCGs
-res_ccg_calls <- lapply(counts_ccg_calls,
+## note: this takes about 1 minute to run with AIC model selection,
+## around 16-17 min with cross validation
+res_ccg_all <- lapply(counts_ccg_all,
                         asmodee,
                         models,
                         method = evaluate_aic,
                         fixed_k = 7,
                         alpha = 0.05)
 
-## derive summary stats
-ccg_calls_stats <- lapply(res_ccg_calls, function(e)
-  data.frame(
-    p_value = e$p_value,
-    k = e$k,
-    n_outliers_recent = e$n_outliers_recent,
-    n_outliers = e$n_outliers,
-    n_recent_increase = sum(tail(e$results$classification, 7) == "increase"))
-  ) %>%
-  bind_rows(.id = "ccg") %>%
-  arrange(desc(n_recent_increase),
-          desc(n_outliers))
-
-```
-
-
-
-
-### Top 25 CCG
-
-These plots show the 25 CGGs with the most increases in the last 7 days. Future
-versions will provide plots for all CCGs.
-
-```{r plots_calls, eval = TRUE, fig.height = 19, out.width = "100%"} 
-
-## here we can select results to display as we want: based on low p-values, a
-## fixed number of outliers, a value of k, ...
-
-## plot results for top ccg
-n_display <- 25
-
-top_ccg_calls <- ccg_calls_stats %>%
-  pull(ccg) %>%
-  head(n_display)
-
-res_ccg_calls_top <- res_ccg_calls[top_ccg_calls]
-plots_ccg_calls_top <- lapply(seq_along(res_ccg_calls_top),
-                           function(i)
-                             plot(res_ccg_calls_top[[i]], "date", point_size = 1, guide = FALSE) +
-                               theme(text = element_text(size = 12),
-                                     axis.text.x = element_text(angle = 45, hjust = 1)) +
-                               scale_x_date(date_label = format("%d %b")) +
-                               labs(x = NULL,
-                                    y = NULL,
-                                    subtitle = names(res_ccg_calls_top)[i]))
-cowplot::plot_grid(plotlist = plots_ccg_calls_top, ncol = 3)
-
-```
-
-
-
-
-### Table summary for all CCGs
-
-```{r ccg_calls_table, results = "markup"}
-
-## display table
-ccg_calls_stats %>%
-  mutate(p_value = format.pval(p_value, digits = 3)) %>% 
-  DT::datatable(ccg_calls_stats, rownames = FALSE)
-
-```
-
-
-
-
-
-
-## Results: 111/999 calls and 111-online
-
-These results reproduce the analyses above using all data, i.e. also including
-111-online calls.
-
-
-```{r results_ccg_all}
-
-## analyses by CCG
-## note: this takes about 1 minute to run with AIC model selection,
-## around 16-17 min with cross validation
-counts_ccg_all <- pathways_recent %>%
-  group_by(ccg_name, date, day, weekday) %>%
-  summarise(count = sum(count)) %>%
-  complete(date, fill = list(count = 0)) %>% 
-  split(.$ccg_name)
-
-## to keep only e.g. Leicester
-## counts_ccg <- counts_ccg[grep("leicester", names(counts_ccg))]
-
-## run asmodee on all CCGs
-res_ccg_all <- lapply(counts_ccg_all,
-                      asmodee,
-                      models,
-                      method = evaluate_aic,
-                      fixed_k = 7,
-                      alpha = 0.05)
+## ## For loop, useful to debug if specific ccgs fail
+## for (i in 1:length(counts_ccg_all)) {
+##   asmodee(counts_ccg_all[[i]],
+##           models,
+##           method = evaluate_aic,
+##           fixed_k = 7,
+##           alpha = 0.05)
+## }
 
 ## derive summary stats
-ccg_all_stats <- lapply(res_ccg_all, function(e)
-  data.frame(
-    p_value = e$p_value,
-    k = e$k,
-    n_outliers_recent = e$n_outliers_recent,
-    n_outliers = e$n_outliers,
-    n_recent_increase = sum(tail(e$results$classification, 7) == "increase"))
-  ) %>%
+ccg_all_stats <- res_ccg_all %>%
+  lapply(function(e)
+    data.frame(
+      p_value = e$p_value,
+      k = e$k,
+      n_outliers_recent = e$n_outliers_recent,
+      n_outliers = e$n_outliers,
+      n_recent_increase = sum(tail(e$results$classification, 7) == "increase"),
+      n_recent_decrease = sum(tail(e$results$classification, 7) == "decrease"),
+      last_pred = tail(e$results$pred, 1))
+    ) %>%
   bind_rows(.id = "ccg") %>%
   arrange(desc(n_recent_increase),
-          desc(n_outliers))
+          desc(last_pred)) %>%
+  tibble()
 
 ```
 
 
 
 
-### Top 25 CCG
+### Trend changes over the last week: overview
 
-These plots show the 25 CGGs with the most increases in the last 7 days. Future
-versions will provide plots for all CCGs.
+This graph provides an overview of the numbers of increases/decreases detected
+at a CCG level by ASMODEE over the last week.
+
+```{r ccg_outliers_summary}
+
+ccg_outliers_summary <- ccg_all_stats %>%
+  mutate(n_recent_increase = factor(n_recent_increase, levels = 0:7),
+         n_recent_decrease = factor(n_recent_decrease, levels = 0:7)) %>%
+  group_by(n_recent_increase, n_recent_decrease) %>%
+  count() %>%
+  rename(increase = n_recent_increase,
+         decrease = n_recent_decrease,
+         frequency = n) %>%
+  pivot_longer(1:2, names_to = "change", values_to = "n")
+
+ccg_outliers_summary  %>%
+  ggplot(aes(x = n, y = frequency, fill = change)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual("Change over last week",
+                    values = c(increase = "#B26363", decrease = "#93bca8")) +
+  theme_bw() +
+  labs(x = "Number of days showing trend change last week",
+       y = "Number of CCGs",
+       title = "Trend changes detected by ASMODEE")
+
+```
+
+
+
+### Top 20 CCG
+
+These plots show the 20 CGGs with the most increases in the last 7 days. This
+graph is not displayed if there are no with at least one increase
+in the last 7 days.
 
 ```{r plots_all, eval = TRUE, fig.height = 19, out.width = "100%"} 
 
@@ -283,23 +256,28 @@ versions will provide plots for all CCGs.
 ## fixed number of outliers, a value of k, ...
 
 ## plot results for top ccg
-n_display <- 25
+n_display <- 20
 
 top_ccg_all <- ccg_all_stats %>%
+  filter(n_recent_increase > 0) %>% 
   pull(ccg) %>%
   head(n_display)
 
 res_ccg_all_top <- res_ccg_all[top_ccg_all]
-plots_ccg_all_top <- lapply(seq_along(res_ccg_all_top),
-                           function(i)
-                             plot(res_ccg_all_top[[i]], "date", point_size = 1, guide = FALSE) +
-                               theme(text = element_text(size = 12),
-                                     axis.text.x = element_text(angle = 45, hjust = 1)) +
-                               scale_x_date(date_label = format("%d %b")) +
-                               labs(x = NULL,
-                                    y = NULL,
-                                    subtitle = names(res_ccg_all_top)[i]))
-cowplot::plot_grid(plotlist = plots_ccg_all_top, ncol = 3)
+
+if (length(res_ccg_all_top)) {
+  plots_ccg_all_top <- seq_along(res_ccg_all_top) %>%
+    lapply(
+      function(i)
+        plot(res_ccg_all_top[[i]], "date", point_size = 1, guide = FALSE) +
+          theme(text = element_text(size = 12),
+                axis.text.x = element_text(angle = 45, hjust = 1)) +
+          scale_x_date(date_label = format("%d %b")) +
+          labs(x = NULL,
+               y = NULL,
+               subtitle = names(res_ccg_all_top)[i]))
+  cowplot::plot_grid(plotlist = plots_ccg_all_top, ncol = 3)
+}
 
 ```
 
@@ -308,66 +286,31 @@ cowplot::plot_grid(plotlist = plots_ccg_all_top, ncol = 3)
 
 ### Table summary for all CCGs
 
+This table summarises the numbers of changes detected by ASMODEE over the last 7
+days, broken down into increases and decreases. *prob* is the probability of
+observing that many outliers in the last week under the best fitting model,
+given the chosen alpha threshold (5%).
+
 ```{r ccg_all_table, results = "markup"}
 
 ## display table
 ccg_all_stats %>%
-  mutate(p_value = format.pval(p_value, digits = 3)) %>% 
-  DT::datatable(ccg_all_stats, rownames = FALSE)
+  mutate(prob = format.pval(p_value, digits = 3),
+         ccg = gsub("_", " ", ccg),
+         ccg = gsub("nhs", "NHS", ccg)) %>%
+  select(ccg,
+         changes = n_outliers_recent,
+         increase = n_recent_increase,
+         decrease = n_recent_decrease,
+         p_value) %>%
+  DT::datatable(ccg_all_stats,
+                rownames = FALSE,
+                width = "100%",
+                class = 'cell-border stripe',
+                filter = 'top')
 
 ```
 
 
 
-
-
-
-
-
-<!-- ------------------------- -->
-<!-- This is not used for now. -->
-<!-- ------------------------- -->
-
-```{r, eval = FALSE}
-library(ggplot2)
-
-template <- c(
-    "### {{nm}}\n",
-    "```{r, echo = FALSE, dpi = 40, out.width = '100%'}\n",
-    "lapply(res_ccg_split[['{{nm}}']], plot_batch)\n",
-    "```\n",
-    "\n"
-  )
-
-splitting_fac <- rep(1:length(res_ccg), each = 9)[seq_along(res_ccg)]
-res_ccg_split <- split(res_ccg, splitting_fac)
-res_ccg_split_names <- sapply(res_ccg_split,
-                              function(e)
-                                paste(head(names(e), 1), tail(names(e), 1), sep = "_"))
-names(res_ccg_split) <- res_ccg_split_names
-
-plot_batch <- function(e) {
-  all_plots <- lapply(
-    seq_along(e),
-    function(i)
-      plot(e[[i]], 'date', point_size = 1, guide = FALSE) +
-        theme(text = element_text(size = 12),
-              axis.text.x = element_text(angle = 45, hjust = 1)) +
-        scale_x_date(date_label = format('%d %b')) +
-        labs(x = NULL,
-             y = NULL,
-             subtitle = names(e)[i]))
-    cowplot::plot_grid(plotlist = all_plots, ncol = 3)
-}
-
-plots <- lapply(
-  res_ccg_split_names,
-  function(nm) knitr::knit_expand(text = template)
-)
-
-
-Put this outside the chunk, right after
-# `r knitr::knit(text = unlist(plots))`
-
-```
 
