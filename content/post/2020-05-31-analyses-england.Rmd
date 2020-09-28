@@ -39,7 +39,6 @@ Models considered here for trend fitting include:
 4. Negative Binomial GLM with a log-linear effect of time and a 'weekday' effect
 distinguishing weekends, Mondays, and the rest of the week
 
-5. As 4), but with an interaction between time and weekday
 
 
 Analyses are run separately for each NHS region.
@@ -101,6 +100,29 @@ models <- list(
 
 
 ```
+
+
+```{r descriptive-hidden, eval = FALSE}
+
+## this one is used to check the data content
+
+x <- pathways %>%
+  group_by(date, site_type, age) %>%
+  summarise(n = sum(count))
+
+x %>%
+  filter(date > as.Date("2020-08-01")) %>%
+  ggplot(aes(x = date, y = n, fill = age)) +
+  geom_col(col = "black") +
+  facet_grid(site_type ~ ., scales = "free_y") +
+  theme_bw() +
+  labs(x = "",
+       y = "Daily potential COVID-19 cases",
+       title = "NHS pathways reports since 1st August") +
+  scale_fill_viridis_d()
+
+```
+
 
 
 
