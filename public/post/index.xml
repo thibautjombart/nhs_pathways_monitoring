@@ -6,11 +6,7 @@
     <description>Recent content in Posts on Potential COVID-19 cases monitoring</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 27 Sep 2020 00:00:00 +0000</lastBuildDate>
-    
-	<atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
-    
-    
+    <lastBuildDate>Sun, 27 Sep 2020 00:00:00 +0000</lastBuildDate><atom:link href="/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>COVID-19 trends by CCG level</title>
       <link>/2020/09/27/covid-19-trends-by-ccg-level/</link>
