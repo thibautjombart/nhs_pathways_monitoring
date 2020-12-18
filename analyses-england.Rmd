@@ -1,0 +1,165 @@
+---
+title: "Covid-19 trends in England"
+description: |
+  Using ASMODEE to monitor NHS pathways in England
+author:
+  - name: Thibaut Jombart, Dirk Schumacher 
+date: "`r Sys.Date() - 1`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.height = 5, fig.width = 8, dpi = 80, layout="l-body-outset")
+```
+
+Using the new algorithm ASMODEE (**A**utomatic **S**election of **M**odels and
+**O**utlier **D**etection for **E**pidemics) we monitor changes in potential
+COVID-19 cases reported through the [NHS
+pathways](https://digital.nhs.uk/dashboards/nhs-pathways), including calls to
+111, 999, and 111-online. Only the last 6 weeks of data are used.
+
+**Note**: this research has not been peer-reviewed yet. This website is still
+experimental. Please contact the <a
+href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
+
+
+Models considered here for trend fitting include:
+
+1. linear regression of counts over time
+
+2. Poisson GLM with a constant rate
+
+3. Poisson GLM with a log-linear effect of time
+
+4. Negative Binomial GLM with a log-linear effect of time
+
+5. Negative Binomial GLM with a log-linear effect of time and a 'weekday' effect
+distinguishing weekends, Mondays, and the rest of the week
+
+
+Analyses are run separately for each NHS region.
+
+```{r packages}
+library(incidence2)
+library(trendbreaker)
+library(ggplot2)
+library(cowplot)
+```
+
+
+```{r prep}
+# get the latest data
+folder <- file.path("data", "clean")
+filenames <- sort(list.files(folder), decreasing = TRUE)
+pathways <- readRDS(file.path(folder, filenames[1]))
+
+# tidy up names
+pathways$ccg_name <- sub("_ccg$", "", pathways$ccg_name)
+first_date <- max(pathways$date, na.rm = TRUE) - 6*7
+pathways_recent <- pathways[pathways$date >= first_date, ]
+
+# define candidate models
+models <- list(
+  regression = lm_model(count ~ day),
+  poisson_constant = glm_model(count ~ 1, family = "poisson"),
+  poisson_time = glm_model(count ~ day, family = "poisson"),
+  poisson_time_weekday = glm_model(count ~ day + weekday, family = "poisson"),
+  negbin_time = glm_nb_model(count ~ day),
+  negbin_time_weekday = glm_nb_model(count ~ day + weekday)
+)
+
+# function to assign custom day of the week to dates
+day_of_week <- function(date) {
+  day_of_week <- weekdays(date)
+  out <- vapply(
+    day_of_week,
+    function(x) {
+      if (x %in% c("Saturday", "Sunday")) {
+        "Weekend"
+      } else if (x == "Monday") {
+        "Monday"
+      } else {
+        "rest_of_week"
+      }
+    },
+    character(1)
+  )
+  factor(out, levels = c("rest_of_week", "Monday", "Weekend"))
+} 
+```
+
+## England
+
+```{r results_england}
+
+# generate counts for all data
+counts_england <- incidence(
+  pathways_recent,
+  date_index = date,
+  count = count
+)
+
+# add on day and weekday
+counts_england$day <- as.integer(
+  counts_england$date - min(counts_england$date, na.rm = TRUE)
+)
+counts_england$weekday <- day_of_week(counts_england$date)
+         
+## results with 'k' fixed to 7 days
+res_england <- asmodee(
+  counts_england,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+plot(res_england, "date") +
+  theme(text = element_text(size = 16),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_label = format("%d %b")) +
+  labs(x = NULL,
+       y = "Daily, potential, COVID-19 reports")
+
+```
+
+
+
+## NHS regions
+
+```{r results_nhs_region, fig.height = 7}
+
+# generate for regions
+counts_nhs_region <- incidence(
+  pathways_recent,
+  date_index = date,
+  groups = nhs_region,
+  count = count,
+  na_as_group = FALSE
+)
+
+# add on day and weekday
+counts_nhs_region$day <- as.integer(
+  counts_nhs_region$date - min(counts_nhs_region$date, na.rm = TRUE)
+)
+counts_nhs_region$weekday <- day_of_week(counts_nhs_region$date)
+
+res_nhs_region <- asmodee(
+  counts_nhs_region,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+plots_nhs_region <- lapply(seq_along(res_nhs_region),
+                           function(i)
+                             plot(res_nhs_region[[i]], "date", point_size = 1, guide = FALSE) +
+                               theme(text = element_text(size = 12),
+                                     axis.text.x = element_text(angle = 45, hjust = 1)) +
+                               scale_x_date(date_label = format("%d %b")) +
+                               labs(x = NULL,
+                                    y = NULL,
+                                    subtitle = names(res_nhs_region)[i]))
+plot_grid(plotlist = plots_nhs_region)
+```

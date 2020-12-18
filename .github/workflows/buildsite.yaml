@@ -1,0 +1,54 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  schedule:
+    - cron:  '30 2 * * *'
+
+name: distill
+
+jobs:
+  build:
+    runs-on: macOS-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Setup R
+        uses: r-lib/actions/setup-r@v1
+
+      - name: Install pandoc
+        run: |
+          brew install pandoc
+
+      - name: Install R packages for report building
+        run: |
+          pkgs <- c("remotes", "distill", "incidence2", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr")
+          install.packages(pkgs, repos = "https://cloud.r-project.org/")
+          remotes::install_github("reconhub/trendbreaker@trendeval")
+        shell: Rscript {0}
+
+      - name: Build site
+        run: |
+          rmarkdown::render_site(encoding = 'UTF-8')
+        shell: Rscript {0}
+
+      - name: Commit files
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add docs/*
+          git commit -m "Automatic website update"
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
+
+
+

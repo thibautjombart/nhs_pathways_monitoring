@@ -1,0 +1,14 @@
+name: "nhs_pathways"
+title: "NHS Pathways Monitoring"
+description: |
+  NHS Pathways Monitoring
+output_dir: "docs"
+navbar:
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "About the model"
+      href: about-model.html
+    - text: "About the data"
+      href: about-data.html
+output: distill::distill_article
