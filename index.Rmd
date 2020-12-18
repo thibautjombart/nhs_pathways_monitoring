@@ -1,3 +1,15 @@
 ---
-site: blogdown:::blogdown_site
+title: "NHS Pathways Monitoring"
+description: |
+  NHS pathways monitoring by region and CCG
+site: distill::distill_website
 ---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+* [Covid-19 trends in England and by NHS region](analyses-england.html)
+* [Covid-19 trends by CGG](analyses-ccg.html)
+
+
