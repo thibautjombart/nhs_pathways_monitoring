@@ -29,7 +29,7 @@ jobs:
         run: |
           pkgs <- c("remotes", "distill", "incidence2", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr")
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
-          remotes::install_github("reconhub/trendbreaker@trendeval")
+          remotes::install_github("reconhub/trendbreaker")
         shell: Rscript {0}
 
       - name: Build site
