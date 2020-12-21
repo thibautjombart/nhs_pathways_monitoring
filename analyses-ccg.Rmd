@@ -192,8 +192,8 @@ ccg_outliers_summary  %>%
 ### Top 20 CCG
 
 These plots show the 20 CGGs with the most increases in the last 7 days. This
-graph is not displayed if there are no with at least one increase
-in the last 7 days.
+graph is not displayed if there are no CCG with at least one increase in the
+last 7 days.
 
 ```{r plots_all, eval = TRUE, fig.height = 19, out.width = "100%"} 
 
