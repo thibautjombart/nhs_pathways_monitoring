@@ -3,7 +3,7 @@ title: "Covid-19 trends by CCG level"
 description: |
   Using ASMODEE to monitor NHS pathways by CCG
 author:
-  - name: Thibaut Jombart, Dirk Schumacher 
+  - name: Thibaut Jombart, Dirk Schumacher, Tim Taylor
 date: "`r Sys.Date() - 1`"
 output: distill::distill_article
 ---
@@ -182,7 +182,8 @@ ccg_outliers_summary  %>%
   theme_bw() +
   labs(x = "Number of days showing trend change last week",
        y = "Number of CCGs",
-       title = "Trend changes detected by ASMODEE")
+       title = "Trend changes detected by ASMODEE") +
+  theme(legend.position = "bottom")
 
 ```
 

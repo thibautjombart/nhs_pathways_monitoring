@@ -3,7 +3,7 @@ title: "Covid-19 trends in England"
 description: |
   Using ASMODEE to monitor NHS pathways in England
 author:
-  - name: Thibaut Jombart, Dirk Schumacher 
+  - name: Thibaut Jombart, Dirk Schumacher, Tim Taylor
 date: "`r Sys.Date() - 1`"
 output: distill::distill_article
 ---
