@@ -25,17 +25,20 @@ trend so that recent outliers can be detected.
 experimental. Please contact the <a
 href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
 
-1. linear regression of counts over time
-
-2. Poisson GLM with a constant rate
-
-3. Poisson GLM with a log-linear effect of time
-
-4. Negative Binomial GLM with a log-linear effect of time
-
-5. Negative Binomial GLM with a log-linear effect of time and a 'weekday' effect
-distinguishing weekends, Mondays, and the rest of the week
-
+* linear regression with a linear time effect
+* Poisson GLMs
+    + constant
+    + with log-linear time effect
+    + with log-linear time effect and weekend effect (weekend / monday / other
+      day)
+    + with log-linear time effect and weekday effect
+* Negative Binomial GLMs
+    + constant
+    + with log-linear time effect
+    + with log-linear time effect and weekend effect (weekend / monday / other
+      day)
+    + with log-linear time effect and weekday effect
+	
 
 Analyses are run separately for each CCG.
 
@@ -58,17 +61,20 @@ pathways <- readRDS(file.path(folder, filenames[1]))
 
 # tidy up names
 pathways$ccg_name <- sub("_ccg$", "", pathways$ccg_name)
-first_date <- max(pathways$date, na.rm = TRUE) - 6*7
+first_date <- max(pathways$date, na.rm = TRUE) - 7 * 7
 pathways_recent <- pathways[pathways$date >= first_date, ]
 
 # define candidate models
 models <- list(
-  regression = lm_model(count ~ day),
+  regression = lm_model(count ~ date_index),
   poisson_constant = glm_model(count ~ 1, family = "poisson"),
-  poisson_time = glm_model(count ~ day, family = "poisson"),
-  poisson_time_weekday = glm_model(count ~ day + weekday, family = "poisson"),
-  negbin_time = glm_nb_model(count ~ day),
-  negbin_time_weekday = glm_nb_model(count ~ day + weekday)
+  poisson_time = glm_model(count ~ date_index, family = "poisson"),
+  poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
+  poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
+  negbin_constant = glm_nb_model(count ~ 1),
+  negbin_time = glm_nb_model(count ~ date_index),
+  negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
+  negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
 )
 
 # function to assign custom day of the week to dates
@@ -109,10 +115,10 @@ counts_ccg_all <- incidence(
 )
 
 # add on day and weekday
-counts_ccg_all$day <- as.integer(
-  counts_ccg_all$date - min(counts_ccg_all$date, na.rm = TRUE)
-)
-counts_ccg_all$weekday <- day_of_week(counts_ccg_all$date)
+counts_england <- counts_england %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
 
 
 ## run asmodee on all CCGs
@@ -162,7 +168,7 @@ ccg_all_stats <- res_ccg_all %>%
 This graph provides an overview of the numbers of increases/decreases detected
 at a CCG level by ASMODEE over the last week.
 
-```{r ccg_outliers_summary}
+```{r ccg_outliers_summary, out_width = "50%"}
 
 ccg_outliers_summary <- ccg_all_stats %>%
   mutate(n_recent_increase = factor(n_recent_increase, levels = 0:7),
@@ -189,40 +195,33 @@ ccg_outliers_summary  %>%
 
 
 
-### Top 20 CCG
+### CCG by numbers of outliers
 
-These plots show the 20 CGGs with the most increases in the last 7 days. This
-graph is not displayed if there are no CCG with at least one increase in the
-last 7 days.
+The following graph shows ASMODEE results ordered by decreasing amounts of
+outliers in the last 7 days.
 
-```{r plots_all, eval = TRUE, fig.height = 19, out.width = "100%"} 
+```{r echo = FALSE}
 
-## here we can select results to display as we want: based on low p-values, a
-## fixed number of outliers, a value of k, ...
+n_figs <- length(res_ccg_all)
+
+```
+
+```{r plots_all, eval = TRUE, fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 50} 
+
+## reorder ccgs
+ccg_order <- ccg_all_stats %>%
+  filter(ccg != "null") %>% 
+  arrange(desc(n_recent_increase),
+          desc(n_outliers_recent)) %>%
+  pull(ccg)
+
+oclass <- class(res_ccg_all)
+res_ccg_all <- res_ccg_all[ccg_order]
+names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
+class(res_ccg_all) <- oclass
 
 ## plot results for top ccg
-n_display <- 20
-
-top_ccg_all <- ccg_all_stats %>%
-  filter(n_recent_increase > 0) %>% 
-  pull(ccg) %>%
-  head(n_display)
-
-res_ccg_all_top <- res_ccg_all[top_ccg_all]
-
-if (length(res_ccg_all_top)) {
-  plots_ccg_all_top <- seq_along(res_ccg_all_top) %>%
-    lapply(
-      function(i)
-        plot(res_ccg_all_top[[i]], "date", point_size = 1, guide = FALSE) +
-          theme(text = element_text(size = 12),
-                axis.text.x = element_text(angle = 45, hjust = 1)) +
-          scale_x_date(date_label = format("%d %b")) +
-          labs(x = NULL,
-               y = NULL,
-               subtitle = names(res_ccg_all_top)[i]))
-  cowplot::plot_grid(plotlist = plots_ccg_all_top, ncol = 3)
-}
+plot(res_ccg_all, ncol = 3)
 
 ```
 
