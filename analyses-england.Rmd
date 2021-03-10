@@ -44,6 +44,8 @@ library(incidence2)
 library(trendbreaker)
 library(ggplot2)
 library(cowplot)
+library(dplyr)
+library(magrittr)
 ```
 
 
@@ -60,12 +62,15 @@ pathways_recent <- pathways[pathways$date >= first_date, ]
 
 # define candidate models
 models <- list(
-  regression = lm_model(count ~ day),
+  regression = lm_model(count ~ date_index),
   poisson_constant = glm_model(count ~ 1, family = "poisson"),
-  poisson_time = glm_model(count ~ day, family = "poisson"),
-  poisson_time_weekday = glm_model(count ~ day + weekday, family = "poisson"),
-  negbin_time = glm_nb_model(count ~ day),
-  negbin_time_weekday = glm_nb_model(count ~ day + weekday)
+  poisson_time = glm_model(count ~ date_index, family = "poisson"),
+  poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
+  poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
+  negbin_constant = glm_nb_model(count ~ 1),
+  negbin_time = glm_nb_model(count ~ date_index),
+  negbin_time_daytype = glm_nb_model(count ~ day+type + date_index),
+  negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
 )
 
 # function to assign custom day of the week to dates
@@ -100,11 +105,10 @@ counts_england <- incidence(
 )
 
 # add on day and weekday
-counts_england$day <- as.integer(
-  counts_england$date - min(counts_england$date, na.rm = TRUE)
-)
-counts_england$weekday <- day_of_week(counts_england$date)
-         
+counts_england <- counts_england %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
 ## results with 'k' fixed to 7 days
 res_england <- asmodee(
   counts_england,
@@ -114,7 +118,7 @@ res_england <- asmodee(
   fixed_k = 7
 )
 
-plot(res_england, "date") +
+plot(res_england) +
   theme(text = element_text(size = 16),
         axis.text.x = element_text(angle = 45, hjust = 1)) +
   scale_x_date(date_label = format("%d %b")) +
@@ -138,11 +142,12 @@ counts_nhs_region <- incidence(
   na_as_group = FALSE
 )
 
+
 # add on day and weekday
-counts_nhs_region$day <- as.integer(
-  counts_nhs_region$date - min(counts_nhs_region$date, na.rm = TRUE)
-)
-counts_nhs_region$weekday <- day_of_week(counts_nhs_region$date)
+counts_nhs_region <- counts_nhs_region %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
 
 res_nhs_region <- asmodee(
   counts_nhs_region,
@@ -152,14 +157,6 @@ res_nhs_region <- asmodee(
   fixed_k = 7
 )
 
-plots_nhs_region <- lapply(seq_along(res_nhs_region),
-                           function(i)
-                             plot(res_nhs_region[[i]], "date", point_size = 1, guide = FALSE) +
-                               theme(text = element_text(size = 12),
-                                     axis.text.x = element_text(angle = 45, hjust = 1)) +
-                               scale_x_date(date_label = format("%d %b")) +
-                               labs(x = NULL,
-                                    y = NULL,
-                                    subtitle = names(res_nhs_region)[i]))
-plot_grid(plotlist = plots_nhs_region)
+plot(res_nhs_region)
+
 ```
