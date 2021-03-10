@@ -25,17 +25,19 @@ href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
 
 Models considered here for trend fitting include:
 
-1. linear regression of counts over time
-
-2. Poisson GLM with a constant rate
-
-3. Poisson GLM with a log-linear effect of time
-
-4. Negative Binomial GLM with a log-linear effect of time
-
-5. Negative Binomial GLM with a log-linear effect of time and a 'weekday' effect
-distinguishing weekends, Mondays, and the rest of the week
-
+* linear regression with a linear time effect
+* Poisson GLMs
+    + constant
+    + with log-linear time effect
+    + with log-linear time effect and weekend effect (weekend / monday / other
+      day)
+    + with log-linear time effect and weekday effect
+* Negative Binomial GLMs
+    + constant
+    + with log-linear time effect
+    + with log-linear time effect and weekend effect (weekend / monday / other
+      day)
+    + with log-linear time effect and weekday effect
 
 Analyses are run separately for each NHS region.
 
@@ -57,7 +59,7 @@ pathways <- readRDS(file.path(folder, filenames[1]))
 
 # tidy up names
 pathways$ccg_name <- sub("_ccg$", "", pathways$ccg_name)
-first_date <- max(pathways$date, na.rm = TRUE) - 6*7
+first_date <- max(pathways$date, na.rm = TRUE) - 7*7
 pathways_recent <- pathways[pathways$date >= first_date, ]
 
 # define candidate models
@@ -69,7 +71,7 @@ models <- list(
   poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
   negbin_constant = glm_nb_model(count ~ 1),
   negbin_time = glm_nb_model(count ~ date_index),
-  negbin_time_daytype = glm_nb_model(count ~ day+type + date_index),
+  negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
   negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
 )
 
