@@ -2094,13 +2094,23 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <p><strong>Note</strong>: this research has not been peer-reviewed yet. This website is still experimental. Please contact the <a
 href="mailto:thibautjombart@gmail.com">authors</a> before using its content.</p>
 <p>Models considered here for trend fitting include:</p>
-<ol type="1">
-<li><p>linear regression of counts over time</p></li>
-<li><p>Poisson GLM with a constant rate</p></li>
-<li><p>Poisson GLM with a log-linear effect of time</p></li>
-<li><p>Negative Binomial GLM with a log-linear effect of time</p></li>
-<li><p>Negative Binomial GLM with a log-linear effect of time and a ‘weekday’ effect distinguishing weekends, Mondays, and the rest of the week</p></li>
-</ol>
+<ul>
+<li>linear regression with a linear time effect</li>
+<li>Poisson GLMs
+<ul>
+<li>constant</li>
+<li>with log-linear time effect</li>
+<li>with log-linear time effect and weekend effect (weekend / monday / other day)</li>
+<li>with log-linear time effect and weekday effect</li>
+</ul></li>
+<li>Negative Binomial GLMs
+<ul>
+<li>constant</li>
+<li>with log-linear time effect</li>
+<li>with log-linear time effect and weekend effect (weekend / monday / other day)</li>
+<li>with log-linear time effect and weekday effect</li>
+</ul></li>
+</ul>
 <p>Analyses are run separately for each NHS region.</p>
 <div class="layout-chunk" data-layout="l-body-outset">
 
