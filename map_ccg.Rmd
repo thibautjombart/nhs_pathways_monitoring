@@ -215,19 +215,19 @@ n_figs <- length(res_ccg_all)
 ```{r plots_all, eval = TRUE, fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 50} 
 
 ## reorder ccgs
-ccg_order <- ccg_all_stats %>%
-  filter(ccg != "null") %>% 
-  arrange(desc(n_recent_increase),
-          desc(n_outliers_recent)) %>%
-  pull(ccg)
-
-oclass <- class(res_ccg_all)
-res_ccg_all <- res_ccg_all[ccg_order]
-names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
-class(res_ccg_all) <- oclass
+# ccg_order <- ccg_all_stats %>%
+#   filter(ccg != "null") %>% 
+#   arrange(desc(n_recent_increase),
+#           desc(n_outliers_recent)) %>%
+#   pull(ccg)
+# 
+# oclass <- class(res_ccg_all)
+# res_ccg_all <- res_ccg_all[ccg_order]
+# names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
+# class(res_ccg_all) <- oclass
 
 ## plot results for top ccg
-plot(res_ccg_all, ncol = 3)
+# plot(res_ccg_all, ncol = 3)
 ```
 
 ### Table summary for all CCGs
@@ -261,14 +261,16 @@ ccg_all_stats %>%
 
 This map highlights the CCGs with changes detected by ASMODEE over the last 7 days
 
-``` {r ccg_map}
-ccg_shape <- st_read(here("data", "shapefile", "ccg_2020.shp")) %>%
+```{r ccg_map, layout="l-screen-inset shaded"}
+ccg_shape <- st_read(here("data", "shapefile", "ccg_2020.shp")) 
+
+ccg_shape_aligned <- ccg_shape %>%
   mutate(ccg = snakecase::to_snake_case(ccg_shape$ccg20nm) %>%
            stringr::str_replace(., "_ccg", ""),
          ccg = recode(ccg, 
                       "nhs_central_london_westminster" = "nhs_central_london_(westminster)")) # same name structure as your df #
 
-CCG <- ccg_shape %>%
+CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
   select(ccg20nm, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry) %>%
@@ -281,10 +283,6 @@ CCG <- ccg_shape %>%
          "Number of days increased" = "n_recent_increase",
          "Number of days decreased" = "n_recent_decrease")
 
-mapview(CCG, 
-        zcol = "Number of days outlying (last week)", 
-        legend = T)
-
 increase <- mapview(CCG, 
         zcol = "Number of days increased", 
         legend = T)
@@ -294,4 +292,10 @@ decrease <- mapview(CCG,
         legend = T)
 
 together <- sync(increase, decrease)
+
+mapview(CCG, 
+        zcol = "Number of days outlying (last week)", 
+        legend = T)
 ```
+
+Plot isn't showing for some reason
