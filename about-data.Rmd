@@ -27,9 +27,11 @@ post](https://cmmid.github.io/topics/covid19/nhs-pathways.html).
 ## Data source
 
 The NHS pathways data used on this website are publicly available from the [NHS
-dashboard]( https://digital.nhs.uk/dashboards/nhs-pathways) and stored with a
-folder in Thibaut Jombart's
-[repository](https://github.com/thibautjombart/nhs_pathways_monitoring/data).
+dashboard]( https://digital.nhs.uk/dashboards/nhs-pathways) and stored within a
+[folder](https://github.com/thibautjombart/nhs_pathways_monitoring/tree/master/data)
+in Thibaut Jombart's
+[repository](https://github.com/thibautjombart/nhs_pathways_monitoring).
+
 
 
 
