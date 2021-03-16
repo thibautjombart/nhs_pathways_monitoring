@@ -3,7 +3,7 @@ title: "Covid-19 trends by CCG level"
 description: |
   Using ASMODEE to monitor NHS pathways by CCG
 author:
-  - name: Thibaut Jombart, Dirk Schumacher, Tim Taylor
+  - name: Thibaut Jombart, David Simons, Dirk Schumacher, Tim Taylor
 date: "`r Sys.Date() - 1`"
 output: distill::distill_article
 ---
@@ -51,6 +51,15 @@ library(DT)
 library(dplyr)
 library(tibble)
 library(tidyr)
+library(forcats)
+library(here)
+library(sf)
+library(mapview)
+library(leaflet)
+library(leafpop)
+library(leafsync)
+library(tmap)
+library(stringr)
 ```
 
 ```{r prep}
@@ -162,7 +171,6 @@ ccg_all_stats <- res_ccg_all %>%
 
 
 
-
 ### Trend changes over the last week: overview
 
 This graph provides an overview of the numbers of increases/decreases detected
@@ -194,19 +202,13 @@ ccg_outliers_summary  %>%
 ```
 
 
-
-### CCG by numbers of outliers
-
-The following graph shows ASMODEE results ordered by decreasing amounts of
-outliers in the last 7 days.
-
 ```{r echo = FALSE}
 
 n_figs <- length(res_ccg_all)
 
 ```
 
-```{r plots_all, eval = TRUE, fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 50} 
+```{r reorder_ccg} 
 
 ## reorder ccgs
 ccg_order <- ccg_all_stats %>%
@@ -219,8 +221,88 @@ oclass <- class(res_ccg_all)
 res_ccg_all <- res_ccg_all[ccg_order]
 names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
 class(res_ccg_all) <- oclass
+```
 
-## plot results for top ccg
+
+```{r ccg_map, echo = FALSE}
+ccg_shape <- st_read(here("data", "shapefile", "ccg_2020.shp")) 
+
+ccg_shape_aligned <- ccg_shape %>%
+  mutate(ccg = snakecase::to_snake_case(ccg_shape$ccg20nm) %>%
+           stringr::str_replace(., "_ccg", ""),
+         ccg = recode(ccg, 
+                      "nhs_central_london_westminster" = "nhs_central_london_(westminster)")) # same name structure as your df #
+
+individual_plots <- lapply(res_ccg_all, plot, guide = F)
+
+CCG <- ccg_shape_aligned %>%
+  full_join(., ccg_all_stats, by = "ccg") %>%
+  filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
+  select(ccg20nm, ccg, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry) %>%
+  mutate(n_recent_increase = factor(n_recent_increase),
+         n_recent_decrease = factor(n_recent_decrease),
+         ccg = stringr::str_replace(ccg, "nhs_", ""),
+         plots = individual_plots[ccg]) %>% # this should be able to join to the names in res_ccg_all
+  rename("CCG Name" = "ccg20nm",
+         "Number of outlier days (last week)" = "n_outliers_recent",
+         "Number of outlier days (ever)" = "n_outliers",
+         "Days increased" = "n_recent_increase",
+         "Number of days decreased" = "n_recent_decrease") # tidying the column titles for mapview
+```
+
+
+
+### CCGs with number of ASMODEE outlier days (increased) in the last week
+
+Selecting the CCG will display the ASMODEE prediction plot for that CCG
+
+``` {r combined, results="markup"}
+CCG <- CCG %>%
+  select(-ccg)
+
+mapviewOptions(leafletHeight = 620)
+
+mapview(CCG, 
+       zcol = "Days increased", 
+       legend = T,
+       alpha.regions = 1,
+       lwd = 1.5,
+       label = "CCG Name",
+       popup = popupGraph(CCG$plots,
+                          width = 260,
+                          height = 180))
+```
+
+``` {r regional_maps}
+# Keeping this in for now but I'll panel the tmap plots for regional snapshots
+
+# increased <- tm_shape(CCG) +
+#   tm_polygons(col = "Number of days increased", palette = "viridis",
+#               legend.hist = T) +
+#   tm_layout(main.title = "Number of days in the last week with outliers (increased)",
+#             main.title.size = 0.9,
+#             legend.outside = T,
+#             legend.outside.position = "bottom")
+# 
+# decreased <- tm_shape(CCG) +
+#   tm_polygons(col = "Number of days decreased", palette = "viridis",
+#               legend.hist = T) +
+#   tm_layout(main.title = "Number of days in the last week with outliers (decreased)",
+#             main.title.size = 0.9,
+#             legend.outside = T,
+#             legend.outside.position = "bottom")
+# 
+# tmap_arrange(increased, decreased) 
+
+```
+
+### CCG by numbers of outliers
+
+The following graph shows ASMODEE results ordered by decreasing amounts of
+outliers in the last 7 days.
+
+```{r plots_all, eval = TRUE, fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 50} 
+# plot results for top ccg
 plot(res_ccg_all, ncol = 3)
 
 ```
@@ -234,7 +316,7 @@ given the chosen alpha threshold (5%).
 
 ```{r ccg_all_table, results = "markup"}
 
-## display table
+# display table
 ccg_all_stats %>%
   mutate(prob = format.pval(p_value, digits = 3),
          ccg = gsub("_", " ", ccg),
