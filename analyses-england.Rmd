@@ -162,3 +162,96 @@ res_nhs_region <- asmodee(
 plot(res_nhs_region)
 
 ```
+
+
+
+
+## Analyses by age groups
+
+### All of England
+
+```{r }
+
+# generate for regions
+counts_england_age <- pathways_recent %>%
+  mutate(age = if_else(age == "70-120", "70+", age)) %>%
+  incidence(
+      date_index = date,
+      groups = age,
+      count = count,
+      na_as_group = FALSE
+  )
+
+# add on day and weekday
+counts_england_age <- counts_england_age %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+# run asmodee
+res_england_age <- asmodee(
+  counts_england_age,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+```
+
+```{r echo = FALSE}
+
+n_figs <- length(res_england_age)
+
+```
+
+```{r fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 70} 
+
+res_england_age <- res_england_age[sort(names(res_england_age))]
+plot(res_england_age, ncol = 3)
+
+```
+
+
+### NHS regions
+
+```{r }
+
+# generate for regions
+counts_nhs_region_age <- pathways_recent %>%
+  mutate(age = if_else(age == "70-120", "70+", age)) %>%
+  incidence(
+      date_index = date,
+      groups = c(nhs_region, age),
+      count = count,
+      na_as_group = FALSE
+  )
+
+# add on day and weekday
+counts_nhs_region_age <- counts_nhs_region_age %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+# run asmodee
+res_nhs_region_age <- asmodee(
+  counts_nhs_region_age,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+```
+
+```{r echo = FALSE}
+
+n_figs <- length(res_nhs_region_age)
+
+```
+
+```{r fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 70} 
+
+res_nhs_region_age <- res_nhs_region_age[sort(names(res_nhs_region_age))]
+plot(res_nhs_region_age, ncol = 3)
+
+```
+
+
