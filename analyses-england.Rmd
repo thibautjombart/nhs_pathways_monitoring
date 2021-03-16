@@ -12,6 +12,8 @@ output: distill::distill_article
 knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.height = 5, fig.width = 8, dpi = 80, layout="l-body-outset")
 ```
 
+## Methodology
+
 Using the new algorithm ASMODEE (**A**utomatic **S**election of **M**odels and
 **O**utlier **D**etection for **E**pidemics) we monitor changes in potential
 COVID-19 cases reported through the [NHS
@@ -95,9 +97,12 @@ day_of_week <- function(date) {
 } 
 ```
 
-## England
 
-```{r results_england}
+## ASMODEE results
+
+### England
+
+```{r }
 
 # generate counts for all data
 counts_england <- incidence(
@@ -131,7 +136,7 @@ plot(res_england) +
 
 
 
-## NHS regions
+### NHS regions
 
 ```{r results_nhs_region, fig.height = 7}
 
@@ -150,7 +155,6 @@ counts_nhs_region <- counts_nhs_region %>%
   mutate(day_type = day_of_week(date_index),
          weekday = weekdays(date_index))
 
-
 res_nhs_region <- asmodee(
   counts_nhs_region,
   models,
@@ -167,6 +171,8 @@ plot(res_nhs_region)
 
 
 ## Analyses by age groups
+
+This section reproduces the same analyses as above, broken down by age groups.
 
 ### All of England
 
