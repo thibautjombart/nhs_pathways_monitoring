@@ -27,7 +27,7 @@ jobs:
 
       - name: Install R packages for report building
         run: |
-          pkgs <- c("remotes", "distill", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "forcats", "here", "sf", "mapview", "leaflet", "leafpop", "stringr")
+          pkgs <- c("remotes", "distill", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "forcats", "here", "sf", "mapview", "leaflet", "leafpop", "stringr", "snakecase")
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
           remotes::install_github("reconhub/trending")
           remotes::install_github("reconhub/trendeval")
