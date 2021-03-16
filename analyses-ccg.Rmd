@@ -59,6 +59,7 @@ library(leaflet)
 library(leafpop)
 library(leafsync)
 library(tmap)
+library(stringr)
 ```
 
 ```{r prep}
@@ -272,7 +273,7 @@ mapview(CCG,
                           height = 180))
 ```
 
-``` {regional_maps}
+``` {r regional_maps}
 # Keeping this in for now but I'll panel the tmap plots for regional snapshots
 
 # increased <- tm_shape(CCG) +
