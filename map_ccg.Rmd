@@ -58,6 +58,7 @@ library(mapview)
 library(leaflet)
 library(leafpop)
 library(leafsync)
+library(tmap)
 ```
 
 ```{r prep}
@@ -122,8 +123,8 @@ counts_ccg_all <- incidence(
 )
 
 counts_ccg_all <- counts_ccg_all %>%
-  mutate(day_type = day_of_week(date),
-         weekday = weekdays(date)) # changed to date from date_index #
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index)) # changed to date from date_index #
 
 
 
@@ -215,16 +216,16 @@ n_figs <- length(res_ccg_all)
 ```{r plots_all, eval = TRUE, fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 50} 
 
 ## reorder ccgs
-# ccg_order <- ccg_all_stats %>%
-#   filter(ccg != "null") %>% 
-#   arrange(desc(n_recent_increase),
-#           desc(n_outliers_recent)) %>%
-#   pull(ccg)
-# 
-# oclass <- class(res_ccg_all)
-# res_ccg_all <- res_ccg_all[ccg_order]
-# names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
-# class(res_ccg_all) <- oclass
+ccg_order <- ccg_all_stats %>%
+  filter(ccg != "null") %>%
+  arrange(desc(n_recent_increase),
+          desc(n_outliers_recent)) %>%
+  pull(ccg)
+
+oclass <- class(res_ccg_all)
+res_ccg_all <- res_ccg_all[ccg_order]
+names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
+class(res_ccg_all) <- oclass
 
 ## plot results for top ccg
 # plot(res_ccg_all, ncol = 3)
@@ -259,9 +260,9 @@ ccg_all_stats %>%
 
 ### Mapping CCG outliers
 
-This map highlights the CCGs with changes detected by ASMODEE over the last 7 days
+These maps highlight the CCGs with changes detected by ASMODEE over the last 7 days
 
-```{r ccg_map, layout="l-screen-inset shaded"}
+```{r ccg_map}
 ccg_shape <- st_read(here("data", "shapefile", "ccg_2020.shp")) 
 
 ccg_shape_aligned <- ccg_shape %>%
@@ -273,29 +274,58 @@ ccg_shape_aligned <- ccg_shape %>%
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
-  select(ccg20nm, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry) %>%
-  mutate(n_outliers_recent = factor(n_outliers_recent, levels = c("0", "1", "2", "3", "4", '5', "6", "7")),
-         n_recent_increase = factor(n_recent_increase, levels = c("0", "1", "2", "3", "4", '5', "6", "7")),
-         n_recent_decrease = factor(n_recent_decrease, levels = c("0", "1", "2", "3", "4", '5', "6", "7"))) %>%
+  select(ccg20nm, ccg, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry) %>%
+  mutate(n_recent_increase = factor(n_recent_increase),
+         n_recent_decrease = factor(n_recent_decrease),
+         ccg = stringr::str_replace(ccg, "nhs_", "")) %>% # this should be able to join to the names in res_ccg_all
   rename("CCG Name" = "ccg20nm",
-         "Number of days outlying (last week)" = "n_outliers_recent",
-         "Number of outliers (total)" = "n_outliers",
+         "Number of outlier days (last week)" = "n_outliers_recent",
+         "Number of outlier days (ever)" = "n_outliers",
          "Number of days increased" = "n_recent_increase",
-         "Number of days decreased" = "n_recent_decrease")
+         "Number of days decreased" = "n_recent_decrease") # tidying the column titles for mapview
 
-increase <- mapview(CCG, 
-        zcol = "Number of days increased", 
-        legend = T)
+increased <- tm_shape(CCG) +
+  tm_polygons(col = "Number of days increased", palette = "viridis",
+              legend.hist = T) +
+  tm_layout(main.title = "Number of days in the last week with outliers (increased)",
+            main.title.size = 0.9,
+            legend.outside = T,
+            legend.outside.position = "bottom")
 
-decrease <- mapview(CCG, 
-        zcol = "Number of days decreased", 
-        legend = T)
+decreased <- tm_shape(CCG) +
+  tm_polygons(col = "Number of days decreased", palette = "viridis",
+              legend.hist = T) +
+  tm_layout(main.title = "Number of days in the last week with outliers (decreased)",
+            main.title.size = 0.9,
+            legend.outside = T,
+            legend.outside.position = "bottom")
 
-together <- sync(increase, decrease)
-
-mapview(CCG, 
-        zcol = "Number of days outlying (last week)", 
-        legend = T)
+tmap_arrange(increased, decreased) 
 ```
 
-Plot isn't showing for some reason
+#### CCGs with outliers of increased calls
+``` {r increased_ccgs, results="markup", layout="l-screen-inset shaded"}
+tmap_mode("view")
+
+increased
+```
+
+#### CCGs with outliers of decreased calls
+``` {r decreased_ccgs, results="markup", layout="l-screen-inset shaded"}
+decreased
+```
+
+#### CCGs with number of outlier days in the last week
+
+Selecting the CCG will pull up the ASMODEE prediction plot for that CCG
+
+``` {r combined, results="markup", layout="l-screen-inset shaded"}
+CCG <- CCG %>%
+  select(-ccg)
+
+mapview(CCG, 
+       zcol = "Number of outlier days (last week)", 
+       legend = T,
+       popup = popupGraph(plot(res_ccg_all[[1]])))
+
+```

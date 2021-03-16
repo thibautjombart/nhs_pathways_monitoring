@@ -116,8 +116,8 @@ counts_ccg_all <- incidence(
 
 # add on day and weekday
 counts_ccg_all <- counts_ccg_all %>%
-  mutate(day_type = day_of_week(date_index),
-         weekday = weekdays(date_index))
+  mutate(day_type = day_of_week(date),
+         weekday = weekdays(date))
 
 
 
