@@ -301,8 +301,8 @@ The following graph shows ASMODEE results ordered by decreasing amounts of
 outliers in the last 7 days.
 
 ```{r plots_all, eval = TRUE, fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 50} 
-## plot results for top ccg
-#plot(res_ccg_all, ncol = 3)
+# plot results for top ccg
+plot(res_ccg_all, ncol = 3)
 
 ```
 
@@ -315,21 +315,21 @@ given the chosen alpha threshold (5%).
 
 ```{r ccg_all_table, results = "markup"}
 
-## display table
-# ccg_all_stats %>%
-#   mutate(prob = format.pval(p_value, digits = 3),
-#          ccg = gsub("_", " ", ccg),
-#          ccg = gsub("nhs", "NHS", ccg)) %>%
-#   select(ccg,
-#          changes = n_outliers_recent,
-#          increase = n_recent_increase,
-#          decrease = n_recent_decrease,
-#          p_value) %>%
-#   DT::datatable(ccg_all_stats,
-#                 rownames = FALSE,
-#                 width = "100%",
-#                 class = 'cell-border stripe',
-#                 filter = 'top')
+# display table
+ccg_all_stats %>%
+  mutate(prob = format.pval(p_value, digits = 3),
+         ccg = gsub("_", " ", ccg),
+         ccg = gsub("nhs", "NHS", ccg)) %>%
+  select(ccg,
+         changes = n_outliers_recent,
+         increase = n_recent_increase,
+         decrease = n_recent_decrease,
+         p_value) %>%
+  DT::datatable(ccg_all_stats,
+                rownames = FALSE,
+                width = "100%",
+                class = 'cell-border stripe',
+                filter = 'top')
 
 ```
 
