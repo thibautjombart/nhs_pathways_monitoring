@@ -57,8 +57,8 @@ library(sf)
 library(mapview)
 library(leaflet)
 library(leafpop)
-library(leafsync)
-library(tmap)
+#library(leafsync)
+#library(tmap)
 library(stringr)
 ```
 
