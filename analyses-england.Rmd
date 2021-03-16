@@ -261,3 +261,65 @@ plot(res_nhs_region_age, ncol = 3)
 ```
 
 
+
+
+
+```{r eval = FALSE}
+
+## Temporary analyses for SPI-M / John
+
+## generate for regions
+counts_ccg_age <- pathways_recent %>%
+  mutate(age = if_else(age == "70-120", "70+", age)) %>%
+  incidence(
+      date_index = date,
+      groups = c(ccg_name, age),
+      count = count,
+      na_as_group = FALSE
+  )
+
+## add on day and weekday
+counts_ccg_age <- counts_ccg_age %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+## run asmodee
+## this will take a few minutes to complete
+res_ccg_age <- asmodee(
+  counts_ccg_age,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+
+## code to summarise results
+## derive summary stats
+ccg_age_stats <- res_ccg_age %>%
+  lapply(function(e)
+    data.frame(
+        n_recent_increase = sum(tail(e$results$classification, 7) == "increase"),
+        n_recent_decrease = sum(tail(e$results$classification, 7) == "decrease")
+    )
+    ) %>%
+  bind_rows(.id = "ccg") %>%
+  arrange(desc(n_recent_increase)) %>%
+  tibble()
+
+ccg_age_stats %>%
+  mutate(group = ccg, ccg = sub("-[0-9]+.*$", "", ccg),
+         age = sub("[^[:digit:]]+-", "", group))  %>%
+  group_by(age, n_recent_increase) %>%
+  summarise(count = n()) %>%
+  group_by(age) %>%
+  mutate(p = 100*count / sum(count)) %>%
+  ggplot(aes(x = n_recent_increase, y = p)) +
+  geom_col() +
+  facet_wrap(~ age) +
+  theme_bw() +
+  labs(x = "Days of increase (last week)",
+       y = "% of CCGs",
+       title = "Increase in NHS 111/999 potential cases by CCG and age group")
+
+```
