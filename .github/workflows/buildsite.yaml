@@ -31,7 +31,7 @@ jobs:
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
           remotes::install_github("r-spatial/mapview@b96de52")
           remotes::install_github("r-spatial/leafpop@3da14fd")
-          remotes::install_github("reconhub/trendbreaker@61a2172")
+          remotes::install_github("reconhub/trendbreaker@summary")
           remotes::install_github("reconhub/incidence2@a9d7be7")
         shell: Rscript {0}
 

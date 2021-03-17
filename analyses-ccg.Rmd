@@ -151,20 +151,18 @@ res_ccg_all <- asmodee(
 ## }
 
 ## derive summary stats
-ccg_all_stats <- res_ccg_all %>%
-  lapply(function(e)
-    data.frame(
-      p_value = e$p_value,
-      k = e$k,
-      n_outliers_recent = e$n_outliers_recent,
-      n_outliers = e$n_outliers,
-      n_recent_increase = sum(tail(e$results$classification, 7) == "increase"),
-      n_recent_decrease = sum(tail(e$results$classification, 7) == "decrease"),
-      last_pred = tail(e$results$estimate, 1))
-    ) %>%
-  bind_rows(.id = "ccg") %>%
-  arrange(desc(n_recent_increase),
-          desc(last_pred)) %>%
+ccg_all_stats <- 
+  summary(res_ccg_all) %>% 
+  arrange()
+ccg_all_stats <- summary(res_ccg_all)
+ccg_all_stats$last_pred <- vapply(
+  res_ccg_all, 
+  function(x) tail(x$results$estimate, 1),
+  double(1)
+)
+ccg_all_stats <- 
+  rename(ccg_all_stats, ccg = group) %>% 
+  arrange(ccg_all_stats, desc(n_recent_increases), desc(last_pred)) %>%
   tibble()
 
 ```
@@ -179,12 +177,12 @@ at a CCG level by ASMODEE over the last week.
 ```{r ccg_outliers_summary, out_width = "50%"}
 
 ccg_outliers_summary <- ccg_all_stats %>%
-  mutate(n_recent_increase = factor(n_recent_increase, levels = 0:7),
-         n_recent_decrease = factor(n_recent_decrease, levels = 0:7)) %>%
-  group_by(n_recent_increase, n_recent_decrease) %>%
+  mutate(n_recent_increases = factor(n_recent_increases, levels = 0:7),
+         n_recent_decreases = factor(n_recent_decreases, levels = 0:7)) %>%
+  group_by(n_recent_increases, n_recent_decreases) %>%
   count() %>%
-  rename(increase = n_recent_increase,
-         decrease = n_recent_decrease,
+  rename(increase = n_recent_increases,
+         decrease = n_recent_decreases,
          frequency = n) %>%
   pivot_longer(1:2, names_to = "change", values_to = "n")
 
@@ -213,8 +211,8 @@ n_figs <- length(res_ccg_all)
 ## reorder ccgs
 ccg_order <- ccg_all_stats %>%
   filter(ccg != "null") %>% 
-  arrange(desc(n_recent_increase),
-          desc(n_outliers_recent)) %>%
+  arrange(desc(n_recent_increases),
+          desc(n_recent_outliers)) %>%
   pull(ccg)
 
 oclass <- class(res_ccg_all)
@@ -241,19 +239,18 @@ individual_plots <- lapply(res_ccg_all, plot, guide = FALSE)
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
-  select(ccg20nm, ccg, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry) %>%
+  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, geometry) %>%
   mutate( # this should be able to join to the names in res_ccg_all
-    n_recent_increase = factor(n_recent_increase),
-    n_recent_decrease = factor(n_recent_decrease),
+    n_recent_increases = factor(n_recent_increases),
+    n_recent_decreases = factor(n_recent_decreases),
     ccg = gsub("nhs_", "", ccg, fixed = TRUE),
     plots = individual_plots[ccg]
   ) %>% 
   rename( # tidying the column titles for mapview
     `CCG Name` = ccg20nm,
-    `Number of outlier days (last week)` = n_outliers_recent,
-    `Number of outlier days (ever)` = n_outliers,
-    `Days increased` = n_recent_increase,
-    `Number of days decreased` = n_recent_decrease
+    `Number of outlier days (last week)` = n_recent_outliers,
+    `Days increased` = n_recent_increases,
+    `Number of days decreased` = n_recent_decreases
   ) 
 ```
 
@@ -302,14 +299,14 @@ given the chosen alpha threshold (5%).
 
 # display table
 ccg_all_stats %>%
-  mutate(prob = format.pval(p_value, digits = 3),
+  mutate(prob = format.pval(p_recent_outliers, digits = 3),
          ccg = gsub("_", " ", ccg),
          ccg = gsub("nhs", "NHS", ccg)) %>%
   select(ccg,
-         changes = n_outliers_recent,
-         increase = n_recent_increase,
-         decrease = n_recent_decrease,
-         p_value) %>%
+         changes = n_recent_outliers,
+         increase = n_recent_increases,
+         decrease = n_recent_decreases,
+         prob) %>%
   DT::datatable(ccg_all_stats,
                 rownames = FALSE,
                 width = "100%",
