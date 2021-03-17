@@ -51,15 +51,9 @@ library(DT)
 library(dplyr)
 library(tibble)
 library(tidyr)
-library(forcats)
-library(here)
 library(sf)
 library(mapview)
-library(leaflet)
 library(leafpop)
-#library(leafsync)
-#library(tmap)
-library(stringr)
 ```
 
 ```{r prep}
@@ -103,6 +97,12 @@ day_of_week <- function(date) {
     character(1)
   )
   factor(out, levels = c("rest_of_week", "Monday", "Weekend"))
+}
+
+# function to convert character string to snake_case
+to_snake_case <- function(x) {
+  tmp <- gsub(",", "", x)
+  tolower(gsub("\\s+", "_", tmp))
 }
 ``` 
 
@@ -225,29 +225,36 @@ class(res_ccg_all) <- oclass
 
 
 ```{r ccg_map, echo = FALSE}
-ccg_shape <- st_read(here("data", "shapefile", "ccg_2020.shp")) 
+ccg_shape <- st_read(file.path("data", "shapefile", "ccg_2020.shp")) 
 
+# create same matching names for ccg
 ccg_shape_aligned <- ccg_shape %>%
-  mutate(ccg = snakecase::to_snake_case(ccg_shape$ccg20nm) %>%
-           stringr::str_replace(., "_ccg", ""),
-         ccg = recode(ccg, 
-                      "nhs_central_london_westminster" = "nhs_central_london_(westminster)")) # same name structure as your df #
+  mutate(
+    ccg = to_snake_case(ccg20nm),
+    ccg = gsub("_ccg", "", ccg, fixed = TRUE),
+    ccg = recode(ccg, "nhs_central_london_westminster" = "nhs_central_london_(westminster)") 
+  ) 
 
-individual_plots <- lapply(res_ccg_all, plot, guide = F)
+# make plots
+individual_plots <- lapply(res_ccg_all, plot, guide = FALSE)
 
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
   select(ccg20nm, ccg, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry) %>%
-  mutate(n_recent_increase = factor(n_recent_increase),
-         n_recent_decrease = factor(n_recent_decrease),
-         ccg = stringr::str_replace(ccg, "nhs_", ""),
-         plots = individual_plots[ccg]) %>% # this should be able to join to the names in res_ccg_all
-  rename("CCG Name" = "ccg20nm",
-         "Number of outlier days (last week)" = "n_outliers_recent",
-         "Number of outlier days (ever)" = "n_outliers",
-         "Days increased" = "n_recent_increase",
-         "Number of days decreased" = "n_recent_decrease") # tidying the column titles for mapview
+  mutate( # this should be able to join to the names in res_ccg_all
+    n_recent_increase = factor(n_recent_increase),
+    n_recent_decrease = factor(n_recent_decrease),
+    ccg = gsub("nhs_", "", ccg, fixed = TRUE),
+    plots = individual_plots[ccg]
+  ) %>% 
+  rename( # tidying the column titles for mapview
+    `CCG Name` = ccg20nm,
+    `Number of outlier days (last week)` = n_outliers_recent,
+    `Number of outlier days (ever)` = n_outliers,
+    `Days increased` = n_recent_increase,
+    `Number of days decreased` = n_recent_decrease
+  ) 
 ```
 
 
@@ -257,8 +264,7 @@ CCG <- ccg_shape_aligned %>%
 Selecting the CCG will display the ASMODEE prediction plot for that CCG
 
 ``` {r combined, results="markup"}
-CCG <- CCG %>%
-  select(-ccg)
+CCG <- select(CCG, -ccg)
 plots <- CCG$plots
 
 mapviewOptions(leafletHeight = 620)
@@ -273,28 +279,6 @@ mapview(CCG,
                           height = 180))
 ```
 
-``` {r regional_maps}
-# Keeping this in for now but I'll panel the tmap plots for regional snapshots
-
-# increased <- tm_shape(CCG) +
-#   tm_polygons(col = "Number of days increased", palette = "viridis",
-#               legend.hist = T) +
-#   tm_layout(main.title = "Number of days in the last week with outliers (increased)",
-#             main.title.size = 0.9,
-#             legend.outside = T,
-#             legend.outside.position = "bottom")
-# 
-# decreased <- tm_shape(CCG) +
-#   tm_polygons(col = "Number of days decreased", palette = "viridis",
-#               legend.hist = T) +
-#   tm_layout(main.title = "Number of days in the last week with outliers (decreased)",
-#             main.title.size = 0.9,
-#             legend.outside = T,
-#             legend.outside.position = "bottom")
-# 
-# tmap_arrange(increased, decreased) 
-
-```
 
 ### CCG by numbers of outliers
 

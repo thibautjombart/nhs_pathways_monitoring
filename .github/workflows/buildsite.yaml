@@ -21,20 +21,18 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@v1
 
-      - name: Install pandoc and udunits
+      - name: Install pandoc and other problematics
         run: |
-          brew install pandoc udunits
+          brew install pandoc udunits gdal geos proj
 
       - name: Install R packages for report building
         run: |
-          pkgs <- c("remotes", "distill", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "forcats", "here", "sf", "leaflet", "leafpop", "stringr", "snakecase")
+          pkgs <- c("remotes", "distill", "trending", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "sf")
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
-          remotes::install_github("r-spatial/mapview")
-          remotes::install_github("r-spatial/leafpop")
-          remotes::install_github("reconhub/trending")
-          remotes::install_github("reconhub/trendeval")
-          remotes::install_github("reconhub/trendbreaker")
-          remotes::install_github("reconhub/incidence2")
+          remotes::install_github("r-spatial/mapview@b96de52")
+          remotes::install_github("r-spatial/leafpop@3da14fd")
+          remotes::install_github("reconhub/trendbreaker@61a2172")
+          remotes::install_github("reconhub/incidence2@a9d7be7")
         shell: Rscript {0}
 
       - name: Build site
