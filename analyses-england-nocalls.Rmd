@@ -1,0 +1,265 @@
+---
+title: "Covid-19 trends in England"
+description: |
+  Using ASMODEE to monitor NHS pathways in England
+author:
+  - name: Thibaut Jombart, Tim Taylor, Dirk Schumacher
+date: "`r Sys.Date() - 1`"
+output: distill::distill_article
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.height = 5, fig.width = 8, dpi = 80, layout="l-body-outset")
+```
+
+## Methodology
+
+Using the new algorithm ASMODEE (**A**utomatic **S**election of **M**odels and
+**O**utlier **D**etection for **E**pidemics) we monitor changes in potential
+COVID-19 cases reported through the [NHS
+pathways](https://digital.nhs.uk/dashboards/nhs-pathways), including **only data
+reported through 111-online**. Since the online system dispatches test requests
+to another NHS website, these data are less likely to reflect testing
+demands. Only the last 7 weeks of data are used.
+
+**Note**: this research has not been peer-reviewed yet. This website is still
+experimental. Please contact the <a
+href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
+
+
+Models considered here for trend fitting include:
+
+* linear regression with a linear time effect
+* Poisson GLMs
+    + constant
+    + with log-linear time effect
+    + with log-linear time effect and weekend effect (weekend / monday / other
+      day)
+    + with log-linear time effect and weekday effect
+* Negative Binomial GLMs
+    + constant
+    + with log-linear time effect
+    + with log-linear time effect and weekend effect (weekend / monday / other
+      day)
+    + with log-linear time effect and weekday effect
+
+Analyses are run separately for each NHS region.
+
+```{r packages}
+library(incidence2)
+library(trendbreaker)
+library(ggplot2)
+library(cowplot)
+library(dplyr)
+library(magrittr)
+```
+
+
+```{r prep}
+# get the latest data
+folder <- file.path("data", "clean")
+filenames <- sort(list.files(folder), decreasing = TRUE)
+pathways <- readRDS(file.path(folder, filenames[1]))
+
+# tidy up names
+pathways$ccg_name <- sub("_ccg$", "", pathways$ccg_name)
+first_date <- max(pathways$date, na.rm = TRUE) - 7*7
+pathways_recent <- pathways[pathways$date >= first_date, ]
+
+# define candidate models
+models <- list(
+  regression = lm_model(count ~ date_index),
+  poisson_constant = glm_model(count ~ 1, family = "poisson"),
+  poisson_time = glm_model(count ~ date_index, family = "poisson"),
+  poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
+  poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
+  negbin_constant = glm_nb_model(count ~ 1),
+  negbin_time = glm_nb_model(count ~ date_index),
+  negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
+  negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
+)
+
+# function to assign custom day of the week to dates
+day_of_week <- function(date) {
+  day_of_week <- weekdays(date)
+  out <- vapply(
+    day_of_week,
+    function(x) {
+      if (x %in% c("Saturday", "Sunday")) {
+        "Weekend"
+      } else if (x == "Monday") {
+        "Monday"
+      } else {
+        "rest_of_week"
+      }
+    },
+    character(1)
+  )
+  factor(out, levels = c("rest_of_week", "Monday", "Weekend"))
+} 
+```
+
+
+## ASMODEE results
+
+### England
+
+```{r }
+
+# generate counts for all data
+counts_england <- pathways_recent %>%
+  filter(site_type == "111_online") %>% 
+  incidence(date_index = date,
+            count = count
+)
+
+# add on day and weekday
+counts_england <- counts_england %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+## results with 'k' fixed to 7 days
+res_england <- asmodee(
+  counts_england,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+plot(res_england) +
+  theme(text = element_text(size = 16),
+        axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_date(date_label = format("%d %b")) +
+  labs(x = NULL,
+       y = "Daily, potential, COVID-19 reports")
+
+```
+
+
+
+### NHS regions
+
+```{r results_nhs_region, fig.height = 7}
+
+# generate for regions
+counts_nhs_region <- incidence(
+  pathways_recent,
+  date_index = date,
+  groups = nhs_region,
+  count = count,
+  na_as_group = FALSE
+)
+
+
+# add on day and weekday
+counts_nhs_region <- counts_nhs_region %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+res_nhs_region <- asmodee(
+  counts_nhs_region,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+plot(res_nhs_region)
+
+```
+
+
+
+
+## Analyses by age groups
+
+This section reproduces the same analyses as above, broken down by age groups.
+
+### All of England
+
+```{r }
+
+# generate for regions
+counts_england_age <- pathways_recent %>%
+  mutate(age = if_else(age == "70-120", "70+", age)) %>%
+  incidence(
+      date_index = date,
+      groups = age,
+      count = count,
+      na_as_group = FALSE
+  )
+
+# add on day and weekday
+counts_england_age <- counts_england_age %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+# run asmodee
+res_england_age <- asmodee(
+  counts_england_age,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+
+```
+
+```{r echo = FALSE}
+
+n_figs <- length(res_england_age)
+
+```
+
+```{r fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 70} 
+
+res_england_age <- res_england_age[sort(names(res_england_age))]
+plot(res_england_age, ncol = 3)
+
+```
+
+
+### NHS regions
+
+```{r }
+
+# generate for regions
+counts_nhs_region_age <- pathways_recent %>%
+  mutate(age = if_else(age == "70-120", "70+", age)) %>%
+  incidence(
+      date_index = date,
+      groups = c(nhs_region, age),
+      count = count,
+      na_as_group = FALSE
+  )
+
+# add on day and weekday
+counts_nhs_region_age <- counts_nhs_region_age %>%
+  mutate(day_type = day_of_week(date_index),
+         weekday = weekdays(date_index))
+
+# run asmodee
+res_nhs_region_age <- asmodee(
+  counts_nhs_region_age,
+  models,
+  method = evaluate_aic,
+  alpha = 0.05,
+  fixed_k = 7
+)
+```
+
+```{r echo = FALSE}
+
+n_figs <- length(res_nhs_region_age)
+
+```
+
+```{r fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 70} 
+
+res_nhs_region_age <- res_nhs_region_age[sort(names(res_nhs_region_age))]
+plot(res_nhs_region_age, ncol = 3)
+
+```
+
+
