@@ -25,21 +25,15 @@ trend so that recent outliers can be detected.
 experimental. Please contact the <a
 href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
 
-* linear regression with a linear time effect
-* Poisson GLMs
-    + constant
-    + with log-linear time effect
-    + with log-linear time effect and weekend effect (weekend / monday / other
-      day)
-    + with log-linear time effect and weekday effect
-* Negative Binomial GLMs
-    + constant
-    + with log-linear time effect
-    + with log-linear time effect and weekend effect (weekend / monday / other
-      day)
-    + with log-linear time effect and weekday effect
-	
 
+* Gaussian GLM and Negative Binomial GLMs
+* With the following effects
+    + constant, linear, or log-linear time effect
+    + optional: weekend effect (weekend / monday / other
+      day, or weekday effect
+	  )
+    + optional: with a change in slope at a given day, from day 9 to day 25
+	
 Analyses are run separately for each CCG.
 
 ```{r packages}
@@ -67,19 +61,6 @@ pathways$ccg_name <- sub("_ccg$", "", pathways$ccg_name)
 first_date <- max(pathways$date, na.rm = TRUE) - 7 * 7
 pathways_recent <- pathways[pathways$date >= first_date, ]
 
-# define candidate models
-models <- list(
-  regression = lm_model(count ~ date_index),
-  poisson_constant = glm_model(count ~ 1, family = "poisson"),
-  poisson_time = glm_model(count ~ date_index, family = "poisson"),
-  poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
-  poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
-  negbin_constant = glm_nb_model(count ~ 1),
-  negbin_time = glm_nb_model(count ~ date_index),
-  negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
-  negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
-)
-
 # function to assign custom day of the week to dates
 day_of_week <- function(date) {
   day_of_week <- weekdays(date)
@@ -106,16 +87,12 @@ to_snake_case <- function(x) {
 }
 ``` 
 
-## Results: 111/999 calls and 111-online.
 
-These analyses use calls to 111 and 999, as well as NHS 111-online reports of
-potential COVID-19 cases.
 
-```{r results_ccg_calls}
 
-# analyses by CCG
+```{r }
 
-## get count by CCG
+# get count by CCG
 counts_ccg_all <- incidence(
   pathways_recent,
   date_index = date,
@@ -126,9 +103,73 @@ counts_ccg_all <- incidence(
 # add on day and weekday
 counts_ccg_all <- counts_ccg_all %>%
   mutate(day_type = day_of_week(date_index),
-         weekday = weekdays(date_index))
+         weekday = weekdays(date_index),
+         day = as.integer(date_index - min(date_index)))
+
+min_k <- 9
+max_k <- 25
+k_values <- min_k:max_k
+change_k_df <- lapply(k_values,
+                       function(k)
+                         counts_ccg_all %>%
+                         transmute(if_else(day <= k, "before", "after")) %>%
+                         pull(1)) %>%
+  data.frame() %>%
+  tibble() %>%
+  setNames(paste0("change_", k_values))
+
+counts_ccg_all <- counts_ccg_all %>%
+  bind_cols(change_k_df)
 
 
+# generate models
+model_grid <- expand.grid(
+    "date_index", # time effect
+    c("", "day_type", "weekday"), # optional offsets for specific days
+    c("", paste("date_index*change", k_values, sep = "_")) # optional split
+)
+
+## convert to text
+predictors_txt <- model_grid %>%
+  apply(1, paste, collapse = " + ")
+
+## cleanup
+predictors_txt <- gsub("(\\+[ ]*)+[ ]*\\+", " + ", predictors_txt) # +... + -> +
+predictors_txt <- sub("^[ ]*\\+", "", predictors_txt) # heading +
+predictors_txt <- sub("\\+[ ]*$", "", predictors_txt) # trailing +
+predictors_txt <- sub("^[ ]+", "", predictors_txt) # heading spaces
+predictors_txt <- sub("[ ]+$", "", predictors_txt) # trailing spaces
+predictors_txt <- sub("[ ]+", " ", predictors_txt) # multiple spaces
+
+## add constant models
+predictors_txt <- c("1", predictors_txt)
+
+
+
+models_txt  <- c(
+    sprintf("glm_model(count ~ %s, family = 'gaussian')", predictors_txt), # Gaussian GLMs
+    sprintf("glm_nb_model(count ~ %s)", predictors_txt) # NegBin GLMs
+)
+
+length(models_txt)
+head(models_txt)
+tail(models_txt)
+
+models <- lapply(models_txt, function(e) eval(parse(text = e)))
+
+```
+
+
+
+
+
+
+## Results: 111/999 calls and 111-online.
+
+These analyses use calls to 111 and 999, as well as NHS 111-online reports of
+potential COVID-19 cases.
+
+```{r results_ccg_calls}
 
 ## run asmodee on all CCGs
 ## note: this takes about 1 minute to run with AIC model selection,
