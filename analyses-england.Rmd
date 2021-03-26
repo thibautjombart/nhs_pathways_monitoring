@@ -52,6 +52,7 @@ library(dplyr)
 ```
 
 
+
 ```{r prep}
 # get the latest data
 folder <- file.path("data", "clean")
@@ -62,19 +63,6 @@ pathways <- readRDS(file.path(folder, filenames[1]))
 pathways$ccg_name <- sub("_ccg$", "", pathways$ccg_name)
 first_date <- max(pathways$date, na.rm = TRUE) - 7*7
 pathways_recent <- pathways[pathways$date >= first_date, ]
-
-# define candidate models
-models <- list(
-  regression = lm_model(count ~ date_index),
-  poisson_constant = glm_model(count ~ 1, family = "poisson"),
-  poisson_time = glm_model(count ~ date_index, family = "poisson"),
-  poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
-  poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
-  negbin_constant = glm_nb_model(count ~ 1),
-  negbin_time = glm_nb_model(count ~ date_index),
-  negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
-  negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
-)
 
 # function to assign custom day of the week to dates
 day_of_week <- function(date) {
@@ -93,13 +81,10 @@ day_of_week <- function(date) {
     character(1)
   )
   factor(out, levels = c("rest_of_week", "Monday", "Weekend"))
-} 
+}
+
 ```
 
-
-## ASMODEE results
-
-### England
 
 ```{r }
 
@@ -113,7 +98,92 @@ counts_england <- incidence(
 # add on day and weekday
 counts_england <- counts_england %>%
   mutate(day_type = day_of_week(date_index),
-         weekday = weekdays(date_index))
+         weekday = weekdays(date_index),
+         day = as.integer(date_index - min(date_index)))
+
+min_k <- 9
+max_k <- 25
+k_values <- min_k:max_k
+change_k_df <- lapply(k_values,
+                       function(k)
+                         counts_england %>%
+                         transmute(if_else(day <= k, "before", "after")) %>%
+                         pull(1)) %>%
+  data.frame() %>%
+  tibble() %>%
+  setNames(paste0("change_", k_values))
+
+counts_england <- counts_england %>%
+  bind_cols(change_k_df)
+
+```
+
+
+
+
+```{r }
+
+model_grid <- expand.grid(
+    "date_index", # time effect
+    c("", "day_type", "weekday"), # optional offsets for specific days
+    c("", paste("date_index*change", k_values, sep = "_")) # optional split
+)
+
+## convert to text
+predictors_txt <- model_grid %>%
+  apply(1, paste, collapse = " + ")
+
+## cleanup
+predictors_txt <- gsub("(\\+[ ]*)+[ ]*\\+", " + ", predictors_txt) # +... + -> +
+predictors_txt <- sub("^[ ]*\\+", "", predictors_txt) # heading +
+predictors_txt <- sub("\\+[ ]*$", "", predictors_txt) # trailing +
+predictors_txt <- sub("^[ ]+", "", predictors_txt) # heading spaces
+predictors_txt <- sub("[ ]+$", "", predictors_txt) # trailing spaces
+predictors_txt <- sub("[ ]+", " ", predictors_txt) # multiple spaces
+
+## add constant models
+predictors_txt <- c("1", predictors_txt)
+
+
+
+models_txt  <- c(
+    ## sprintf("lm_model(cases ~ %s)", predictors_txt), # linear models
+    sprintf("glm_model(count ~ %s, family = 'gaussian')", predictors_txt), # Gaussian GLMs
+    sprintf("glm_nb_model(count ~ %s)", predictors_txt) # NegBin GLMs
+)
+
+length(models_txt)
+head(models_txt)
+tail(models_txt)
+
+models <- lapply(models_txt, function(e) eval(parse(text = e)))
+
+
+## # define candidate models
+## models <- list(
+##   regression = lm_model(count ~ date_index),
+##   poisson_constant = glm_model(count ~ 1, family = "poisson"),
+##   poisson_time = glm_model(count ~ date_index, family = "poisson"),
+##   poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
+##   poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
+##   negbin_constant = glm_nb_model(count ~ 1),
+##   negbin_time = glm_nb_model(count ~ date_index),
+##   negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
+##   negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
+## )
+
+
+```
+
+
+
+
+
+## ASMODEE results
+
+### England
+
+```{r }
 
 ## results with 'k' fixed to 7 days
 res_england <- asmodee(
@@ -148,11 +218,25 @@ counts_nhs_region <- incidence(
   na_as_group = FALSE
 )
 
-
 # add on day and weekday
 counts_nhs_region <- counts_nhs_region %>%
   mutate(day_type = day_of_week(date_index),
-         weekday = weekdays(date_index))
+         weekday = weekdays(date_index),
+         day = as.integer(date_index - min(date_index)))
+
+# add changepoints
+change_k_df <- lapply(k_values,
+                      function(k)
+                        counts_nhs_region %>%
+                          transmute(if_else(day <= k, "before", "after")) %>%
+                          pull(1)) %>%
+  data.frame() %>%
+  tibble() %>%
+  setNames(paste0("change_", k_values))
+
+counts_nhs_region <- counts_nhs_region %>%
+  bind_cols(change_k_df)
+
 
 res_nhs_region <- asmodee(
   counts_nhs_region,
@@ -190,7 +274,21 @@ counts_england_age <- pathways_recent %>%
 # add on day and weekday
 counts_england_age <- counts_england_age %>%
   mutate(day_type = day_of_week(date_index),
-         weekday = weekdays(date_index))
+         weekday = weekdays(date_index),
+         day = as.integer(date_index - min(date_index)))
+
+# add changepoints
+change_k_df <- lapply(k_values,
+                      function(k)
+                        counts_england_age %>%
+                          transmute(if_else(day <= k, "before", "after")) %>%
+                          pull(1)) %>%
+  data.frame() %>%
+  tibble() %>%
+  setNames(paste0("change_", k_values))
+
+counts_england_age <- counts_england_age %>%
+  bind_cols(change_k_df)
 
 # run asmodee
 res_england_age <- asmodee(
@@ -234,7 +332,22 @@ counts_nhs_region_age <- pathways_recent %>%
 # add on day and weekday
 counts_nhs_region_age <- counts_nhs_region_age %>%
   mutate(day_type = day_of_week(date_index),
-         weekday = weekdays(date_index))
+         weekday = weekdays(date_index),
+         day = as.integer(date_index - min(date_index)))
+
+# add changepoints
+change_k_df <- lapply(k_values,
+                      function(k)
+                        counts_nhs_region_age %>%
+                          transmute(if_else(day <= k, "before", "after")) %>%
+                          pull(1)) %>%
+  data.frame() %>%
+  tibble() %>%
+  setNames(paste0("change_", k_values))
+
+counts_nhs_region_age <- counts_nhs_region_age %>%
+  bind_cols(change_k_df)
+
 
 # run asmodee
 res_nhs_region_age <- asmodee(
@@ -244,6 +357,7 @@ res_nhs_region_age <- asmodee(
   alpha = 0.05,
   fixed_k = 7
 )
+
 ```
 
 ```{r echo = FALSE}
