@@ -27,20 +27,14 @@ href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
 
 Models considered here for trend fitting include:
 
-* linear regression with a linear time effect
-* Poisson GLMs
-    + constant
-    + with log-linear time effect
-    + with log-linear time effect and weekend effect (weekend / monday / other
-      day)
-    + with log-linear time effect and weekday effect
-* Negative Binomial GLMs
-    + constant
-    + with log-linear time effect
-    + with log-linear time effect and weekend effect (weekend / monday / other
-      day)
-    + with log-linear time effect and weekday effect
-
+* Gaussian GLM and Negative Binomial GLMs
+* With the following effects
+    + constant, linear, or log-linear time effect
+    + optional: weekend effect (weekend / monday / other
+      day, or weekday effect
+	  )
+    + optional: with a change in slope at a given day, from day 9 to day 25
+	
 Analyses are run separately for each NHS region.
 
 ```{r packages}
