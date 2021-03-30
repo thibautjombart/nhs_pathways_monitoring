@@ -47,6 +47,20 @@
       "last_modified": "2021-03-30T11:00:06+01:00"
     },
     {
+      "path": "analyses-england_plot.html",
+      "title": "Covid-19 trends in England",
+      "description": "Using ASMODEE to monitor NHS pathways in England\n",
+      "author": [
+        {
+          "name": "Thibaut Jombart, Dirk Schumacher, Tim Taylor",
+          "url": {}
+        }
+      ],
+      "date": "`r Sys.Date() - 1`",
+      "contents": "\r\nUsing the new algorithm ASMODEE (Automatic Selection of Models and Outlier Detection for Epidemics) we monitor changes in potential COVID-19 cases reported through the NHS pathways, including calls to 111, 999, and 111-online. Only the last 6 weeks of data are used.\r\nNote: this research has not been peer-reviewed yet. This website is still experimental. Please contact the authors before using its content.\r\nModels considered here for trend fitting include:\r\nlinear regression with a linear time effect\r\nPoisson GLMs\r\nconstant\r\nwith log-linear time effect\r\nwith log-linear time effect and weekend effect (weekend / monday / other day)\r\nwith log-linear time effect and weekday effect\r\n\r\nNegative Binomial GLMs\r\nconstant\r\nwith log-linear time effect\r\nwith log-linear time effect and weekend effect (weekend / monday / other day)\r\nwith log-linear time effect and weekday effect\r\n\r\nAnalyses are run separately for each NHS region.\r\n\r\n\r\n\r\n\r\n\r\n\r\nEngland\r\n\r\n\r\n\r\nThe number of reports via 111/999 suggest the COVID-19 epidemic in England is currently falling. At current rates the number of daily cases in England will be half of todays in 39 days.\r\nNHS regions\r\n\r\n\r\n\r\nThe number of local reports to 111/999 suggest the following changes in the rate of growth of the COVID-19 epidemic:\r\nEast of England is falling. At current rates the number of daily cases in East of England will be half of todays in 33 days.\r\nLondon is falling. At current rates the number of daily cases in London will be half of todays in 37 days.\r\nMidlands region is falling. At current rates the number of daily cases in Midlands will be half of todays in 33 days.\r\nNorth East and Yorkshire region is effectively unchanging with a doubling or halving time greater than 50 days.\r\nNorth West region is falling. At current rates the number of daily cases in North West will be half of todays in 37 days.\r\nSouth East region is falling. At current rates the number of daily cases in South East will be half of todays in 41 days.\r\nSouth West region is falling. At current rates the number of daily cases in South West will be half of todays in 38 days.\r\n\r\n\r\n\r\n\r\n\r\n\r\nAnalyses by age groups\r\nAll of England\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\nNHS regions\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n",
+      "last_modified": "2021-03-30T11:32:35+01:00"
+    },
+    {
       "path": "index.html",
       "title": "NHS Pathways Monitoring",
       "description": "NHS pathways monitoring by region and CCG\n",
