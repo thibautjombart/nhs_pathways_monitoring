@@ -57,6 +57,10 @@ if (length(pathway_calls) == 0L) {
     pathway_calls <- URLencode("NHS Pathways Covid-19 data_20")
     pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
 }
+if (length(pathway_calls) == 0L) {
+    pathway_calls <- URLencode("NHS Pathways Covid-19 - 20")
+    pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+}
 pathways_calls_data <- read.csv(
     url(pathway_calls),
     na.strings = c("NA", ""),
