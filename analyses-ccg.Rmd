@@ -258,6 +258,7 @@ Selecting the CCG will display the ASMODEE prediction plot for that CCG
 ``` {r combined, results="markup"}
 CCG <- CCG %>%
   select(-ccg)
+plots <- CCG$plots
 
 mapviewOptions(leafletHeight = 620)
 
@@ -267,7 +268,7 @@ mapview(CCG,
        alpha.regions = 1,
        lwd = 1.5,
        label = "CCG Name",
-       popup = popupGraph(CCG$plots,
+       popup = popupGraph(plots,
                           width = 260,
                           height = 180))
 ```
