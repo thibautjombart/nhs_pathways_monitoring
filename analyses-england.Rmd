@@ -43,6 +43,9 @@ library(trendbreaker)
 library(ggplot2)
 library(cowplot)
 library(dplyr)
+library(i2extras)
+library(mapview)
+library(sf)
 ```
 
 
@@ -197,7 +200,37 @@ plot(res_england) +
 
 ```
 
+``` {r}
+# identify doubling/halving time across england
+rate_england <- counts_england %>% 
+  keep_last(7 * 4) %>% 
+  fit_curve("negbin") %>% 
+  growth_rate() %>%
+  cbind("nhs_region" = "England")
 
+# function to describe change in epidemic growth
+growth_descriptive <- function(rate_region){
+  describe <- ifelse(rate_region$time >= 50, paste0("effectively unchanging with a ", rate_region$growth_or_decay,
+                                                    " time greater than 50 days ", "(rate = ", round(rate_region$r, 3), ")."),
+                     ifelse(rate_region$growth_or_decay == "doubling" & rate_region$time < 50,
+                            paste0("growing. At current rates the number of daily cases in ",
+                                   rate_region$nhs_region,
+                                   " will be double todays in ",
+                                   ifelse(rate_region$time > 50, "more than 50", round(rate_region$time, 0)),
+                                   " days (rate = ", round(rate_region$r, 3), ")."),
+                            ifelse(rate_region$growth_or_decay == "halving" & rate_region$time < 50,
+                                   paste0("falling. At current rates the number of daily cases in ",
+                                          rate_region$nhs_region,
+                                          " will be half of todays in ",
+                                          ifelse(rate_region$time > 50, "more than 50", round(rate_region$time, 0)),
+                                          " days (rate = ", round(rate_region$r, 3), ")."),
+                                   "ERROR")))
+}
+
+change_england <- growth_descriptive(rate_england)
+```
+
+The number of reports via 111/999 suggest the COVID-19 epidemic in England is currently `r paste(change_england)`
 
 ### NHS regions
 
@@ -240,11 +273,79 @@ res_nhs_region <- asmodee(
   fixed_k = 7
 )
 
-plot(res_nhs_region)
+#plot(res_nhs_region)
 
+# calculate the halving/doubline rate across NHS regions
+rate_nhs_region <- counts_nhs_region %>% 
+  keep_last(7 * 4) %>% 
+  fit_curve("negbin") %>% 
+  growth_rate()
+
+change_eoe <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "East of England"))
+change_london <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "London"))
+change_midlands <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "Midlands"))
+change_ney <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "North East and Yorkshire"))
+change_nw <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "North West"))
+change_se <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "South East"))
+change_sw <- growth_descriptive(rate_nhs_region %>%
+                                  filter(nhs_region == "South West"))
 ```
 
+The number of local reports to 111/999 suggest the following changes in the rate of growth of the COVID-19 epidemic:
 
+  + East of England is `r paste(change_eoe)`
+  + London is  `r paste(change_london)`
+  + Midlands region is  `r paste(change_midlands)`
+  + North East and Yorkshire region is  `r paste(change_ney)`
+  + North West region is  `r paste(change_nw)`
+  + South East region is  `r paste(change_se)`
+  + South West region is  `r paste(change_sw)`
+
+### Map of case growth/decay in NHS regions
+
+Selecting the region will display the ASMODEE prediction plot
+
+``` {r prepare_plot, echo =F}
+region_shape <- st_read(file.path("data", "shapefile", "nhs_region_2019.shp")) 
+
+region_plots <- lapply(res_nhs_region, plot, guide = F)
+
+growth_levels <- c("Halving" = "halving", "Minimal change" = "minimal change", "Doubling" = "doubling")
+
+regions <- region_shape %>%
+  full_join(., rate_nhs_region %>%
+              rename("nhser19nm" = "nhs_region") %>%
+              dplyr::select(nhser19nm, growth_or_decay, time),
+            by = "nhser19nm") %>%
+  mutate(growth = factor(ifelse(time >= 50, "minimal change", growth_or_decay), levels = c("halving", "minimal change", "doubling"), labels = names(growth_levels)),
+         growth = recode_factor(growth, !!!growth_levels),
+         time = ifelse(time > 50, ">50 days", paste0(round(time, 0), " days")),
+         plots = region_plots[nhser19nm],
+         label = paste0(nhser19nm, ", ", growth_or_decay, " time = ", time)) %>%
+  rename("NHS region" = "nhser19nm",
+         `Case growth/decay` = "growth") # tidying the column titles for mapview
+
+plots <- regions$plots
+
+mapviewOptions(leafletHeight = 620,
+               basemaps = c("CartoDB.Positron"))
+
+mapview(regions, 
+       zcol = "Case growth/decay", 
+       legend = T,
+       alpha.regions = 1,
+       lwd = 1.5,
+       label = "label",
+       popup = popupGraph(plots,
+                          width = 260,
+                          height = 180))
+```
 
 
 ## Analyses by age groups

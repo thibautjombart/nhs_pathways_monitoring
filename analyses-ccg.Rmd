@@ -38,6 +38,7 @@ Analyses are run separately for each CCG.
 
 ```{r packages}
 library(incidence2)
+library(i2extras)
 library(trendbreaker)
 library(ggplot2)
 library(cowplot)
@@ -317,6 +318,135 @@ mapview(CCG,
                           height = 180))
 ```
 
+
+
+<!-- ### Map of case growth/decay in NHS regions -->
+
+<!-- Selecting the region will display the ASMODEE prediction plot -->
+
+<!-- ``` {r plot_regional,  results="markup"} -->
+<!-- mapview(regions,  -->
+<!--        zcol = "Case growth/decay",  -->
+<!--        legend = T, -->
+<!--        alpha.regions = 1, -->
+<!--        lwd = 1.5, -->
+<!--        label = "label", -->
+<!--        col.regions = c("light blue", "grey", "dark red"), -->
+<!--        popup = popupGraph(plots, -->
+<!--                           width = 260, -->
+<!--                           height = 180)) -->
+<!-- ``` -->
+
+
+<!-- ``` {r growth_ccg, echo = F} -->
+
+<!-- rate_ccg <- counts_ccg_all %>%  -->
+<!--   keep_last(7 * 4) %>%  -->
+<!--   fit_curve("poisson") %>% # negbinomial removes several CCGs -->
+<!--   growth_rate() %>% -->
+<!--   mutate(time =  ifelse(time > 50, ">50 days", paste0(round(time, 0), " days"))) -->
+
+<!-- ``` -->
+
+<!-- growth_levels <- c("Halving" = "halving", "Minimal change" = "minimal change", "Doubling" = "doubling") -->
+
+<!-- CCG <- ccg_shape_aligned %>% -->
+<!--   full_join(., ccg_all_stats, by = "ccg") %>% -->
+<!--   left_join(., rate_ccg %>% -->
+<!--               rename("ccg" = "ccg_name") %>% -->
+<!--               dplyr::select(ccg, growth_or_decay, time), -->
+<!--             by = "ccg") %>% -->
+<!--   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it # -->
+<!-- <<<<<<< HEAD -->
+<!--   select(ccg20nm, ccg, n_outliers_recent, n_outliers, n_recent_increase, n_recent_decrease, geometry, growth_or_decay, time) %>% -->
+<!--   mutate(n_recent_increase = factor(n_recent_increase), -->
+<!--          n_recent_decrease = factor(n_recent_decrease), -->
+<!--          growth = factor(ifelse(time >= 50, "minimal change", growth_or_decay), levels = c("halving", "minimal change", "doubling"), labels = names(growth_levels)), -->
+<!--          growth = recode_factor(growth, !!!growth_levels), -->
+<!--          label = paste0(`ccg20nm`, ", ", growth_or_decay, " time = ", time), -->
+<!--          ccg = stringr::str_replace(ccg, "nhs_", ""), -->
+<!--          plots = individual_plots[ccg]) %>% # this should be able to join to the names in res_ccg_all -->
+<!--   rename("CCG Name" = "ccg20nm", -->
+<!--          "Number of outlier days (last week)" = "n_outliers_recent", -->
+<!--          "Number of outlier days (ever)" = "n_outliers", -->
+<!--          "Days increased" = "n_recent_increase", -->
+<!--          "Number of days decreased" = "n_recent_decrease") # tidying the column titles for mapview -->
+<!-- ======= -->
+<!--   select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, geometry) %>% -->
+<!--   mutate( # this should be able to join to the names in res_ccg_all -->
+<!--     n_recent_increases = factor(n_recent_increases), -->
+<!--     n_recent_decreases = factor(n_recent_decreases), -->
+<!--     ccg = gsub("nhs_", "", ccg, fixed = TRUE), -->
+<!--     plots = individual_plots[ccg] -->
+<!--   ) %>%  -->
+<!--   rename( # tidying the column titles for mapview -->
+<!--     `CCG Name` = ccg20nm, -->
+<!--     `Number of outlier days (last week)` = n_recent_outliers, -->
+<!--     `Days increased` = n_recent_increases, -->
+<!--     `Number of days decreased` = n_recent_decreases -->
+<!--   )  -->
+<!-- >>>>>>> master -->
+<!-- ``` -->
+
+
+
+<!-- ### CCGs with number of ASMODEE outlier days (increased) in the last week -->
+
+<!-- Selecting the CCG will display the ASMODEE prediction plot for that CCG -->
+
+<!-- ``` {r combined, results="markup"} -->
+<!-- <<<<<<< HEAD -->
+<!-- CCG <- CCG %>% -->
+<!--   select(-ccg) -->
+<!-- plots <- CCG$plots -->
+
+<!-- mapviewOptions(leafletHeight = 620, -->
+<!--                basemaps = c("CartoDB.Positron")) -->
+
+<!-- ======= -->
+<!-- CCG <- select(CCG, -ccg) -->
+<!-- plots <- CCG$plots -->
+
+<!-- mapviewOptions(leafletHeight = 620) -->
+<!-- >>>>>>> master -->
+<!-- mapview(CCG,  -->
+<!--        zcol = "Days increased",  -->
+<!--        legend = T, -->
+<!--        alpha.regions = 1, -->
+<!--        lwd = 1.5, -->
+<!--        label = "CCG Name", -->
+<!--        popup = popupGraph(plots, -->
+<!--                           width = 260, -->
+<!--                           height = 180)) -->
+
+
+<!-- ``` -->
+
+<!-- <<<<<<< HEAD -->
+<!-- ### CCGs with growth/decay of case numbers -->
+
+<!-- ``` {r ccg_growth, results="markup"} -->
+<!-- CCG <- CCG %>% -->
+<!--           drop_na(growth) -->
+
+<!-- mapview(CCG, -->
+<!--         zcol = "growth", -->
+<!--         na.color = "dark grey", -->
+<!--         legend = T, -->
+<!--         alpha.regions = 1, -->
+<!--         lwd = 1.5, -->
+<!--         label = "label", -->
+<!--         col.regions = c("light blue", "grey", "dark red"), -->
+<!--         popup = F) -->
+
+<!-- growing <- CCG %>% -->
+<!--   filter(growth == "doubling") %>% -->
+<!--   tibble() %>% -->
+<!--   select(`CCG Name`) %>% -->
+<!--   as.vector()  -->
+<!-- ``` -->
+
+<!-- The CCGs with increasing growth are `r knitr::combine_words(growing)` -->
 
 ### CCG by numbers of outliers
 
