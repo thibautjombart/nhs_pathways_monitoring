@@ -29,10 +29,11 @@ jobs:
         run: |
           pkgs <- c("remotes", "distill", "trending", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "sf")
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
-          remotes::install_github("r-spatial/mapview@b96de52")
-          remotes::install_github("r-spatial/leafpop@3da14fd")
-          remotes::install_github("reconhub/trendbreaker")
-          remotes::install_github("reconverse/incidence2")
+          remotes::install_github("r-spatial/mapview@b96de52", upgrade = "never")
+          remotes::install_github("r-spatial/leafpop@3da14fd", upgrade = "never")
+          remotes::install_github("reconhub/trendbreaker", upgrade = "never")
+          remotes::install_github("reconverse/incidence2", upgrade = "never")
+          remotes::install_github("reconverse/i2extras", upgrade = "never")
         shell: Rscript {0}
 
       - name: Build site
