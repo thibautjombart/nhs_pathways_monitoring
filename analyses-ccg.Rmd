@@ -310,9 +310,21 @@ CCG <- ccg_shape_aligned %>%
 
 
 
-### CCGs with number of ASMODEE outlier days (increased) in the last week
+### CCGs with number of ASMODEE outlier days and growth rate
 
-Selecting the CCG will display the ASMODEE prediction plot for that CCG
+Selecting the outlier radial will display the number of days each CCG is outlying
+the ASMODEE predictions for. Selecting the CCG of interest will present the ASMODEE plot
+for that CCG
+
+The growth rate (*r*) can be roughly interepreted as the percentage of daily
+increase / decrease in case incidence. For instance, a *r* of 0.015 means
+incidence increases by 1.5% every day, while a value of -0.02 means incidence
+decreases by approximately 2% every day. See this excellent
+[article](https://plus.maths.org/content/epidemic-growth-rate) for more
+information on *r* and its relationship with the reproduction number, *R*.
+
+Selecting the growth rate radial will display the growth rate for each CCG. Selecting the CCG
+of interest will present the point estimate of *r* and the upper and lower confidence intervals.
 
 ``` {r combined, results="markup"}
 CCG <- select(CCG, -ccg)
@@ -320,6 +332,7 @@ plots <- CCG$plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
 factpal <- colorFactor(palette.colors(n = 7, palette = "Set 1", alpha = c(0.2, 1, 1, 1, 1, 1, 1)), CCG$`Days increased`, alpha = T) 
+contpal <- colorNumeric(palette = "Spectral",  domain = CCG$r, reverse = T)
 
 r_plot <- vector("list", length(CCG$`CCG Name`))
 names(r_plot) <- CCG$`CCG Name`
@@ -348,29 +361,13 @@ leaflet(CCG,
                                  width = 260,
                                  height = 180),
               highlightOptions = highlightOptions(color = "black", weight = 2,
-                                                  bringToFront = TRUE)) %>%
+                                                  bringToFront = TRUE),
+              group = "Outliers") %>%
   addLegend("topright",
             title = "Days increased",
             pal = factpal,
-            values = ~`Days increased`)
-```
-
-
-### Estimates of growth rates by CCG
-
-The growth rate (*r*) can be roughly interepreted as the percentage of daily
-increase / decrease in case incidence. For instance, a *r* of 0.015 means
-incidence increases by 1.5% every day, while a value of -0.02 means incidence
-decreases by approximately 2% every day. See this excellent
-[article](https://plus.maths.org/content/epidemic-growth-rate) for more
-information on *r* and its relationship with the reproduction number, *R*.
-
-``` {r growth_ccg}
-contpal <- colorNumeric(palette = "Spectral",  domain = CCG$r, reverse = T)
-
-leaflet(CCG,
-        height = 620) %>%
-  addProviderTiles(providers$CartoDB.Positron) %>%
+            values = ~`Days increased`,
+            group = "Outliers") %>%
   addPolygons(color = "black",
               fillColor = ~contpal(r), 
               fillOpacity = 0.9, 
@@ -381,11 +378,18 @@ leaflet(CCG,
                                  width = 260,
                                  height = 180),
               highlightOptions = highlightOptions(color = "black", weight = 2,
-                                                  bringToFront = TRUE)) %>%
+                                                  bringToFront = TRUE),
+              group = "Growth rate") %>%
   addLegend("topright",
             title = "Growth rate",
             pal = contpal,
-            values = ~r)
+            values = ~r,
+            group = "Growth rate") %>%
+  addLayersControl(
+    baseGroups = c("Outliers", "Growth rate"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  hideGroup("Growth rate")
 ```
 
 ### CCG by numbers of outliers
