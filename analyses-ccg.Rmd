@@ -46,7 +46,7 @@ library(dplyr)
 library(tibble)
 library(tidyr)
 library(sf)
-library(mapview)
+library(leaflet)
 library(leafpop)
 ```
 
@@ -305,18 +305,44 @@ Selecting the CCG will display the ASMODEE prediction plot for that CCG
 CCG <- select(CCG, -ccg)
 plots <- CCG$plots
 
-mapviewOptions(leafletHeight = 620)
-mapview(CCG, 
-       zcol = "Days increased", 
-       legend = T,
-       alpha.regions = 1,
-       lwd = 1.5,
-       label = "CCG Name",
-       popup = popupGraph(plots,
-                          width = 260,
-                          height = 180))
+# Set the palette explicitly as I want 0 to have a high alpha
+factpal <- colorFactor(palette.colors(n = 7, palette = "Set 1", alpha = c(0.2, 1, 1, 1, 1, 1, 1)), CCG$`Days increased`, alpha = T) 
+# Leaflet wants WGS84 projection
+CCG <- st_transform(CCG, "WGS84")
+
+leaflet(CCG,
+        height = 620) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(color = "black",
+              fillColor = ~factpal(`Days increased`), 
+              fillOpacity = 0.9, 
+              weight = 1,
+              smoothFactor = 0.2,
+              label = CCG$`CCG Name`,
+              popup = popupGraph(plots,
+                                 width = 260,
+                                 height = 180),
+              highlightOptions = highlightOptions(color = "black", weight = 2,
+                                                  bringToFront = TRUE)) %>%
+  addLegend("topright",
+            title = "Days increased",
+            pal = factpal,
+            values = ~`Days increased`)
 ```
 
+
+### Estimates of growth rates by CCG
+
+The growth rate (*r*) can be roughly interepreted as the percentage of daily
+increase / decrease in case incidence. For instance, a *r* of 0.015 means
+incidence increases by 1.5% every day, while a value of -0.02 means incidence
+decreases by approximately 2% every day. See this excellent
+[article](https://plus.maths.org/content/epidemic-growth-rate) for more
+information on *r* and its relationship with the reproduction number, *R*.
+
+``` {r growth_ccg}
+
+```
 
 ### CCG by numbers of outliers
 
