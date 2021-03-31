@@ -52,7 +52,15 @@ if (is_allowed) {
 
 # get data ---------------------------------------------------------------------
 pathway_calls <- URLencode("NHS Pathways Covid-19 data 20")
-pathway_calls <- grep(pathway_calls, scraped_links, fixed=T, value = TRUE)
+pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+if (length(pathway_calls) == 0L) {
+    pathway_calls <- URLencode("NHS Pathways Covid-19 data_20")
+    pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+}
+if (length(pathway_calls) == 0L) {
+    pathway_calls <- URLencode("NHS Pathways Covid-19 - 20")
+    pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+}
 pathways_calls_data <- read.csv(
     url(pathway_calls),
     na.strings = c("NA", ""),
@@ -60,7 +68,11 @@ pathways_calls_data <- read.csv(
 )
 
 pathways_online <- URLencode("111 Online Covid-19 data_20")
-pathways_online <- grep(pathways_online, scraped_links, fixed=T, value = TRUE)
+pathways_online <- grep(pathways_online, scraped_links, fixed=TRUE, value = TRUE)
+if (length(pathways_online) == 0L) {
+    pathways_online <- URLencode("111 Online Covid-19 - 20")
+    pathways_online <- grep(pathways_online, scraped_links, fixed = TRUE, value = TRUE)
+}
 pathways_online_data <- read.csv(
     pathways_online,
     na.strings = c("NA", ""),
