@@ -27,7 +27,7 @@ href="mailto:thibautjombart@gmail.com">authors</a> before using its content.
 
 Models considered here for trend fitting include:
 
-* Gaussian GLM and Negative Binomial GLMs
+* Gaussian (left-censored) GLM and Negative Binomial GLM
 * With the following effects
     + constant, linear, or log-linear time effect
     + optional: weekend effect (weekend / monday / other
@@ -151,21 +151,6 @@ head(models_txt)
 tail(models_txt)
 
 models <- lapply(models_txt, function(e) eval(parse(text = e)))
-
-
-## # define candidate models
-## models <- list(
-##   regression = lm_model(count ~ date_index),
-##   poisson_constant = glm_model(count ~ 1, family = "poisson"),
-##   poisson_time = glm_model(count ~ date_index, family = "poisson"),
-##   poisson_time_daytype = glm_model(count ~ day_type + date_index, family = "poisson"),
-##   poisson_time_weekday = glm_model(count ~ weekday + date_index, family = "poisson"),
-##   negbin_constant = glm_nb_model(count ~ 1),
-##   negbin_time = glm_nb_model(count ~ date_index),
-##   negbin_time_daytype = glm_nb_model(count ~ day_type + date_index),
-##   negbin_time_weekday = glm_nb_model(count ~ weekday + date_index)
-## )
-
 
 ```
 
@@ -368,3 +353,57 @@ plot(res_nhs_region_age, ncol = 3)
 ```
 
 
+
+
+## Estimates of growth rates
+
+These estimates of daily growth rates are based on negative binomial GLM fitted
+to the last 3 weeks of data. Positive values indicate epidemic growth, and
+negative values indicate decline. Confidence intervals including zero indicate
+uncertain trends.
+
+The growth rate (*r*) can be roughly interepreted as the percentage of daily
+increase / decrease in case incidence. For instance, a *r* of 0.015 means
+incidence increases by 1.5% every day, while a value of -0.02 means incidence
+decreases by approximately 2% every day. See this excellent
+[article](https://plus.maths.org/content/epidemic-growth-rate) for more
+information on *r* and its relationship with the reproduction number, *R*.
+
+
+```{r }
+
+r_eng <- counts_england %>%
+  keep_last(3*7) %>%
+  fit_curve("negbin") %>%
+  growth_rate() %>%
+  mutate(group = "England")
+
+
+r_nhs_region <- counts_nhs_region %>%
+  keep_last(3*7) %>%
+  fit_curve("negbin") %>%
+  growth_rate() %>%
+  mutate(group = nhs_region)
+
+r_age <- counts_england_age %>%
+  keep_last(3*7) %>%
+  fit_curve("negbin") %>%
+  growth_rate %>%
+  mutate(group = age)
+
+r_df <- bind_rows(r_eng, r_nhs_region, r_age) %>%
+  mutate(group = factor(group,
+                        levels = rev(
+                          c("England",
+                            unique(r_nhs_region$group),
+                            unique(r_age$group)))))
+r_df %>%
+  ggplot(aes(y = group, x = r)) +
+  geom_errorbar(aes(xmin = r_lower, xmax = r_upper)) +
+  geom_point() +
+  theme_bw() +
+#  scale_x_continuous(labels=scales::percent) +
+  geom_vline(xintercept = 0, linetype = 2, color = "salmon") +
+  labs(x = "Daily growth rate (r)", y = "")
+
+```
