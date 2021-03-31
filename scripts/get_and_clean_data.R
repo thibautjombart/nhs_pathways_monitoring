@@ -68,7 +68,11 @@ pathways_calls_data <- read.csv(
 )
 
 pathways_online <- URLencode("111 Online Covid-19 data_20")
-pathways_online <- grep(pathways_online, scraped_links, fixed=T, value = TRUE)
+pathways_online <- grep(pathways_online, scraped_links, fixed=TRUE, value = TRUE)
+if (length(pathways_online) == 0L) {
+    pathways_online <- URLencode("111 Online Covid-19 - 20")
+    pathways_online <- grep(pathways_online, scraped_links, fixed = TRUE, value = TRUE)
+}
 pathways_online_data <- read.csv(
     pathways_online,
     na.strings = c("NA", ""),
