@@ -46,6 +46,7 @@ library(dplyr)
 library(tibble)
 library(tidyr)
 library(sf)
+library(i2extras)
 library(leaflet)
 library(leafpop)
 ```
@@ -277,13 +278,24 @@ ccg_shape_aligned <- ccg_shape %>%
 # make plots
 individual_plots <- lapply(res_ccg_all, plot, guide = FALSE)
 
+# calculate growth for ccgs
+r_ccg <- counts_ccg_all %>%
+  keep_last(3*7) %>%
+  fit_curve("poisson") %>%
+  growth_rate() %>%
+  rename("ccg" = "ccg_name")
+
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
+  full_join(., r_ccg, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
-  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, geometry) %>%
-  mutate( # this should be able to join to the names in res_ccg_all
+  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, r, r_lower, r_upper, geometry) %>%
+  mutate(
     n_recent_increases = factor(n_recent_increases),
     n_recent_decreases = factor(n_recent_decreases),
+    confidence = ifelse(r_lower > 0 & r_upper > 0, "confident_growth",
+                        ifelse(r_lower < 0 & r_upper < 0, "confident_decay",
+                               "equivocal")),
     ccg = gsub("nhs_", "", ccg, fixed = TRUE),
     plots = individual_plots[ccg]
   ) %>% 
@@ -292,7 +304,8 @@ CCG <- ccg_shape_aligned %>%
     `Number of outlier days (last week)` = n_recent_outliers,
     `Days increased` = n_recent_increases,
     `Number of days decreased` = n_recent_decreases
-  ) 
+  ) %>%
+  st_transform(., "WGS84")
 ```
 
 
@@ -307,8 +320,20 @@ plots <- CCG$plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
 factpal <- colorFactor(palette.colors(n = 7, palette = "Set 1", alpha = c(0.2, 1, 1, 1, 1, 1, 1)), CCG$`Days increased`, alpha = T) 
-# Leaflet wants WGS84 projection
-CCG <- st_transform(CCG, "WGS84")
+
+r_plot <- vector("list", length(CCG$`CCG Name`))
+names(r_plot) <- CCG$`CCG Name`
+
+for(i in 1:length(CCG$`CCG Name`)) {
+  r_plot[[i]] <- ggplot(tibble(CCG[i,]), aes(y = `CCG Name`, x = r)) +
+    geom_errorbar(aes(xmin = r_lower, xmax = r_upper)) +
+    geom_point() +
+    scale_y_discrete(labels = substr(CCG$`CCG Name`[i], 5, nchar(CCG$`CCG Name`[i])-4)) +
+    theme_bw() +
+    #  scale_x_continuous(labels=scales::percent) +
+    geom_vline(xintercept = 0, linetype = 2, color = "salmon") +
+    labs(x = "Daily growth rate (r)", y = "")
+}
 
 leaflet(CCG,
         height = 620) %>%
@@ -341,7 +366,26 @@ decreases by approximately 2% every day. See this excellent
 information on *r* and its relationship with the reproduction number, *R*.
 
 ``` {r growth_ccg}
+contpal <- colorNumeric(palette = "Spectral",  domain = CCG$r, reverse = T)
 
+leaflet(CCG,
+        height = 620) %>%
+  addProviderTiles(providers$CartoDB.Positron) %>%
+  addPolygons(color = "black",
+              fillColor = ~contpal(r), 
+              fillOpacity = 0.9, 
+              weight = 1,
+              smoothFactor = 0.2,
+              label = CCG$`CCG Name`,
+              popup = popupGraph(r_plot,
+                                 width = 260,
+                                 height = 180),
+              highlightOptions = highlightOptions(color = "black", weight = 2,
+                                                  bringToFront = TRUE)) %>%
+  addLegend("topright",
+            title = "Growth rate",
+            pal = contpal,
+            values = ~r)
 ```
 
 ### CCG by numbers of outliers
