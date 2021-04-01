@@ -46,6 +46,7 @@ library(dplyr)
 library(tibble)
 library(tidyr)
 library(sf)
+library(i2extras)
 library(leaflet)
 library(leafpop)
 ```
@@ -277,13 +278,24 @@ ccg_shape_aligned <- ccg_shape %>%
 # make plots
 individual_plots <- lapply(res_ccg_all, plot, guide = FALSE)
 
+# calculate growth for ccgs
+r_ccg <- counts_ccg_all %>%
+  keep_last(3*7) %>%
+  fit_curve("poisson") %>%
+  growth_rate() %>%
+  rename("ccg" = "ccg_name")
+
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
+  full_join(., r_ccg, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
-  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, geometry) %>%
-  mutate( # this should be able to join to the names in res_ccg_all
+  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, r, r_lower, r_upper, geometry) %>%
+  mutate(
     n_recent_increases = factor(n_recent_increases),
     n_recent_decreases = factor(n_recent_decreases),
+    confidence = ifelse(r_lower > 0 & r_upper > 0, "confident_growth",
+                        ifelse(r_lower < 0 & r_upper < 0, "confident_decay",
+                               "equivocal")),
     ccg = gsub("nhs_", "", ccg, fixed = TRUE),
     plots = individual_plots[ccg]
   ) %>% 
@@ -292,23 +304,32 @@ CCG <- ccg_shape_aligned %>%
     `Number of outlier days (last week)` = n_recent_outliers,
     `Days increased` = n_recent_increases,
     `Number of days decreased` = n_recent_decreases
-  ) 
+  ) %>%
+  st_transform(., "WGS84")
 ```
 
 
 
-### CCGs with number of ASMODEE outlier days (increased) in the last week
+### CCGs with number of ASMODEE outlier days and growth rate
 
-Selecting the CCG will display the ASMODEE prediction plot for that CCG
+Selecting the outlier radial will display the number of days each CCG is outlying
+the ASMODEE predictions for, the growth rate radial displays the CCG growth rate. 
+Selecting the CCG of interest will present the ASMODEE plot for that CCG
+
+The growth rate (*r*) can be roughly interepreted as the percentage of daily
+increase / decrease in case incidence. For instance, a *r* of 0.015 means
+incidence increases by 1.5% every day, while a value of -0.02 means incidence
+decreases by approximately 2% every day. See this excellent
+[article](https://plus.maths.org/content/epidemic-growth-rate) for more
+information on *r* and its relationship with the reproduction number, *R*.
 
 ``` {r combined, results="markup"}
 CCG <- select(CCG, -ccg)
 plots <- CCG$plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
-factpal <- colorFactor(palette.colors(n = 7, palette = "Set 1", alpha = c(0.2, 1, 1, 1, 1, 1, 1)), CCG$`Days increased`, alpha = T) 
-# Leaflet wants WGS84 projection
-CCG <- st_transform(CCG, "WGS84")
+factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
+contpal <- colorNumeric(palette = "RdYlBu",  domain = CCG$r, reverse = T)
 
 leaflet(CCG,
         height = 620) %>%
@@ -323,25 +344,35 @@ leaflet(CCG,
                                  width = 260,
                                  height = 180),
               highlightOptions = highlightOptions(color = "black", weight = 2,
-                                                  bringToFront = TRUE)) %>%
+                                                  bringToFront = TRUE),
+              group = "Outliers") %>%
   addLegend("topright",
             title = "Days increased",
             pal = factpal,
-            values = ~`Days increased`)
-```
-
-
-### Estimates of growth rates by CCG
-
-The growth rate (*r*) can be roughly interepreted as the percentage of daily
-increase / decrease in case incidence. For instance, a *r* of 0.015 means
-incidence increases by 1.5% every day, while a value of -0.02 means incidence
-decreases by approximately 2% every day. See this excellent
-[article](https://plus.maths.org/content/epidemic-growth-rate) for more
-information on *r* and its relationship with the reproduction number, *R*.
-
-``` {r growth_ccg}
-
+            values = ~`Days increased`,
+            group = "Outliers") %>%
+  addPolygons(color = "black",
+              fillColor = ~contpal(r), 
+              fillOpacity = 0.9, 
+              weight = 1,
+              smoothFactor = 0.2,
+              label = CCG$`CCG Name`,
+              popup = popupGraph(plots,
+                                 width = 260,
+                                 height = 180),
+              highlightOptions = highlightOptions(color = "black", weight = 2,
+                                                  bringToFront = TRUE),
+              group = "Growth rate") %>%
+  addLegend("topright",
+            title = "Growth rate",
+            pal = contpal,
+            values = ~r,
+            group = "Growth rate") %>%
+  addLayersControl(
+    baseGroups = c("Outliers", "Growth rate"),
+    options = layersControlOptions(collapsed = FALSE)
+  ) %>%
+  hideGroup("Growth rate")
 ```
 
 ### CCG by numbers of outliers
@@ -379,7 +410,4 @@ ccg_all_stats %>%
                 width = "100%",
                 class = 'cell-border stripe',
                 filter = 'top')
-
 ```
-
-
