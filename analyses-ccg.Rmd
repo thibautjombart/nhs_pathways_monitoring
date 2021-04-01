@@ -313,8 +313,8 @@ CCG <- ccg_shape_aligned %>%
 ### CCGs with number of ASMODEE outlier days and growth rate
 
 Selecting the outlier radial will display the number of days each CCG is outlying
-the ASMODEE predictions for. Selecting the CCG of interest will present the ASMODEE plot
-for that CCG
+the ASMODEE predictions for, the growth rate radial displays the CCG growth rate. 
+Selecting the CCG of interest will present the ASMODEE plot for that CCG
 
 The growth rate (*r*) can be roughly interepreted as the percentage of daily
 increase / decrease in case incidence. For instance, a *r* of 0.015 means
@@ -323,30 +323,13 @@ decreases by approximately 2% every day. See this excellent
 [article](https://plus.maths.org/content/epidemic-growth-rate) for more
 information on *r* and its relationship with the reproduction number, *R*.
 
-Selecting the growth rate radial will display the growth rate for each CCG. Selecting the CCG
-of interest will present the point estimate of *r* and the upper and lower confidence intervals.
-
 ``` {r combined, results="markup"}
 CCG <- select(CCG, -ccg)
 plots <- CCG$plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
-factpal <- colorFactor(palette.colors(n = 7, palette = "Set 1", alpha = c(0.2, 1, 1, 1, 1, 1, 1)), CCG$`Days increased`, alpha = T) 
-contpal <- colorNumeric(palette = "Spectral",  domain = CCG$r, reverse = T)
-
-r_plot <- vector("list", length(CCG$`CCG Name`))
-names(r_plot) <- CCG$`CCG Name`
-
-for(i in 1:length(CCG$`CCG Name`)) {
-  r_plot[[i]] <- ggplot(tibble(CCG[i,]), aes(y = `CCG Name`, x = r)) +
-    geom_errorbar(aes(xmin = r_lower, xmax = r_upper)) +
-    geom_point() +
-    scale_y_discrete(labels = substr(CCG$`CCG Name`[i], 5, nchar(CCG$`CCG Name`[i])-4)) +
-    theme_bw() +
-    #  scale_x_continuous(labels=scales::percent) +
-    geom_vline(xintercept = 0, linetype = 2, color = "salmon") +
-    labs(x = "Daily growth rate (r)", y = "")
-}
+factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
+contpal <- colorNumeric(palette = "RdYlBu",  domain = CCG$r, reverse = T)
 
 leaflet(CCG,
         height = 620) %>%
@@ -374,7 +357,7 @@ leaflet(CCG,
               weight = 1,
               smoothFactor = 0.2,
               label = CCG$`CCG Name`,
-              popup = popupGraph(r_plot,
+              popup = popupGraph(plots,
                                  width = 260,
                                  height = 180),
               highlightOptions = highlightOptions(color = "black", weight = 2,
@@ -427,7 +410,6 @@ ccg_all_stats %>%
                 width = "100%",
                 class = 'cell-border stripe',
                 filter = 'top')
-
 ```
 
 
