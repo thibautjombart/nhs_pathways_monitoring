@@ -27,17 +27,30 @@ new_column_names <- c(
     "count"
 )
 
+# nhs_region_lookup_path <- file.path(
+#     "data",
+#     "lookups",
+#     "ccg_info_april_2020.csv"
+# )
+
 nhs_region_lookup_path <- file.path(
     "data",
     "lookups",
-    "ccg_info_april_2020.csv"
+    "ccg_info_april_2021.csv"
 )
+
+# nhs_region_lookup_names <- c(
+#     ccg_name = "name",
+#     ccg_postcode = "postcode",
+#     nhs_region = "nhs_region"
+# )
 
 nhs_region_lookup_names <- c(
     ccg_name = "name",
-    ccg_postcode = "postcode",
+    ccg_new_name = "new_name",
     nhs_region = "nhs_region"
 )
+
 
 # scraping ---------------------------------------------------------------------
 is_allowed <- paths_allowed(paths = path)
@@ -118,6 +131,8 @@ pathways_all$age <- gsub(" years", "", pathways_all$age)
 nhs_lookup <- read.csv(nhs_region_lookup_path)[nhs_region_lookup_names]
 nhs_lookup <- setNames(nhs_lookup, names(nhs_region_lookup_names))
 pathways_all <- merge(pathways_all, nhs_lookup, all.x = TRUE)
+pathways_all$ccg_name <- pathways_all$ccg_new_name # TODO - this is a quick fix for new ccg naming
+pathways_all$ccg_new_name <- NULL # TODO - this is a quick fix for new ccg naming
 pathways_all$nhs_region <- gsub("_", " ", pathways_all$nhs_region)
 pathways_all$nhs_region <- tools::toTitleCase(pathways_all$nhs_region)
 
