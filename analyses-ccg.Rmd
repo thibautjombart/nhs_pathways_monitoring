@@ -101,6 +101,19 @@ counts_ccg_all <- incidence(
   groups = ccg_name
 )
 
+tmp <- attributes(counts_ccg_all)
+
+counts_ccg_all <- tidyr::complete(
+  counts_ccg_all,
+  tidyr::expand(counts_ccg_all,date_index, ccg_name), 
+  fill = list(count = 0)
+)
+
+new_row_names <- attr(counts_ccg_all, "row.names")
+attributes(counts_ccg_all) <- tmp
+attr(counts_ccg_all, "row.names") = new_row_names
+
+
 # add on day and weekday
 counts_ccg_all <- counts_ccg_all %>%
   mutate(day_type = day_of_week(date_index),
