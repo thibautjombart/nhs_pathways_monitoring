@@ -278,12 +278,12 @@ class(res_ccg_all) <- oclass
 
 
 ```{r ccg_map, echo = FALSE}
-ccg_shape <- st_read(file.path("data", "shapefile", "ccg_2020.shp")) 
+ccg_shape <- st_read(file.path("data", "shapefile", "ccg_2021.shp"))
 
 # create same matching names for ccg
 ccg_shape_aligned <- ccg_shape %>%
   mutate(
-    ccg = to_snake_case(ccg20nm),
+    ccg = to_snake_case(CCG21NM),
     ccg = gsub("_ccg", "", ccg, fixed = TRUE),
     ccg = recode(ccg, "nhs_central_london_westminster" = "nhs_central_london_(westminster)") 
   ) 
@@ -302,7 +302,7 @@ CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   full_join(., r_ccg, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
-  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, r, r_lower, r_upper, geometry) %>%
+  select(CCG21NM, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, r, r_lower, r_upper, geometry) %>%
   mutate(
     n_recent_increases = factor(n_recent_increases),
     n_recent_decreases = factor(n_recent_decreases),
@@ -313,7 +313,7 @@ CCG <- ccg_shape_aligned %>%
     plots = individual_plots[ccg]
   ) %>% 
   rename( # tidying the column titles for mapview
-    `CCG Name` = ccg20nm,
+    `CCG Name` = CCG21NM,
     `Number of outlier days (last week)` = n_recent_outliers,
     `Days increased` = n_recent_increases,
     `Number of days decreased` = n_recent_decreases
