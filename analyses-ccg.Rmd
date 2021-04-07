@@ -298,6 +298,11 @@ r_ccg <- counts_ccg_all %>%
   growth_rate() %>%
   rename("ccg" = "ccg_name")
 
+r_plot <- counts_ccg_all %>% fit_curve(model = "poisson") %>%
+  mutate(ccg = gsub("nhs_", "", ccg_name, fixed = TRUE))
+r_plot <- split(r_plot, r_plot$ccg)
+individual_r_plots <- lapply(r_plot, plot)
+
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   full_join(., r_ccg, by = "ccg") %>%
@@ -310,7 +315,8 @@ CCG <- ccg_shape_aligned %>%
                         ifelse(r_lower < 0 & r_upper < 0, "confident_decay",
                                "equivocal")),
     ccg = gsub("nhs_", "", ccg, fixed = TRUE),
-    plots = individual_plots[ccg]
+    plots = individual_plots[ccg],
+    r_plots = individual_r_plots[ccg]
   ) %>% 
   rename( # tidying the column titles for mapview
     `CCG Name` = CCG21NM,
@@ -319,6 +325,8 @@ CCG <- ccg_shape_aligned %>%
     `Number of days decreased` = n_recent_decreases
   ) %>%
   st_transform(., "WGS84")
+
+
 ```
 
 
@@ -339,6 +347,7 @@ information on *r* and its relationship with the reproduction number, *R*.
 ``` {r combined, results="markup"}
 CCG <- select(CCG, -ccg)
 plots <- CCG$plots
+r_plots <- CCG$r_plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
 factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
@@ -370,7 +379,7 @@ leaflet(CCG,
               weight = 1,
               smoothFactor = 0.2,
               label = CCG$`CCG Name`,
-              popup = popupGraph(plots,
+              popup = popupGraph(r_plots,
                                  width = 260,
                                  height = 180),
               highlightOptions = highlightOptions(color = "black", weight = 2,
