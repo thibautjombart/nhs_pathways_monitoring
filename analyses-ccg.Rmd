@@ -371,6 +371,7 @@ leaflet(CCG,
   addLegend("topright",
             title = "Days increased",
             pal = factpal,
+            opacity = 0.9,
             values = ~`Days increased`,
             group = "Outliers") %>%
   addPolygons(color = "black",
@@ -388,6 +389,7 @@ leaflet(CCG,
   addLegend("topright",
             title = "Growth rate",
             pal = contpal,
+            opacity = 0.9,
             values = ~r,
             group = "Growth rate") %>%
   addLayersControl(
