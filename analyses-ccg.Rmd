@@ -12,15 +12,6 @@ output: distill::distill_article
 knitr::opts_chunk$set(echo = FALSE, results = "hide", fig.height = 5, fig.width = 8, dpi = 80)
 ```
 
-<br>
-**<span style="color: red;">2021-04-07: update on data issues</span>**
-
-*On 2021-04-01, 38 CCGs were merged to create 9 new CCGs. We are currently
-adapting the pipeline to reflect these changes but for the next few days the
-there will be some oddities reflected in the output below.  Full details of the
-of the changes can be found [here](https://digital.nhs.uk/services/organisation-data-service/change-summary-reconfiguration-2021-ccg-mergers).*
-
-***
 
 Using the new algorithm ASMODEE (**A**utomatic **S**election of **M**odels and
 **O**utlier **D**etection for **E**pidemics) we monitor changes in potential
