@@ -105,7 +105,7 @@ tmp <- attributes(counts_ccg_all)
 
 counts_ccg_all <- tidyr::complete(
   counts_ccg_all,
-  tidyr::expand(counts_ccg_all,date_index, ccg_name), 
+  tidyr::expand(counts_ccg_all, date_index, ccg_name),
   fill = list(count = 0)
 )
 

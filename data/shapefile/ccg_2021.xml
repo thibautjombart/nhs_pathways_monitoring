@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><MD_Metadata xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:xalan="http://xml.apache.org/xalan" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gml="http://www.opengis.net/gml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.isotc211.org/2005/gmd">
     <fileIdentifier>
-        <gco:CharacterString>0a1cbc68403b4404bb94d603221acb1d</gco:CharacterString>
+        <gco:CharacterString>d6acd30ad71f4e14b4de808e58d9bc4c</gco:CharacterString>
     </fileIdentifier>
     <language>
         <LanguageCode codeList="http://www.loc.gov/standards/iso639-2/php/code_list.php" codeListValue="eng" codeSpace="ISO639-2">eng</LanguageCode>
@@ -49,7 +49,7 @@
             <citation>
                 <CI_Citation>
                     <title>
-                        <gco:CharacterString>Clinical Commissioning Groups (April 2021) EN BFE</gco:CharacterString>
+                        <gco:CharacterString>Clinical Commissioning Groups (April 2021) EN BUC</gco:CharacterString>
                     </title>
                     <date>
                         <CI_Date>
@@ -61,17 +61,20 @@
                             </dateType>
                         </CI_Date>
                     </date>
+                    <edition>
+                        <gco:CharacterString>31/03/2021: Original</gco:CharacterString>
+                    </edition>
                     <identifier>
                         <MD_Identifier>
                             <code>
-                                <gco:CharacterString>0a1cbc68403b4404bb94d603221acb1d</gco:CharacterString>
+                                <gco:CharacterString>d6acd30ad71f4e14b4de808e58d9bc4c</gco:CharacterString>
                             </code>
                         </MD_Identifier>
                     </identifier>
                 </CI_Citation>
             </citation>
             <abstract>
-                <gco:CharacterString>This file contains the digital vector boundaries for Clinical Commissioning Groups in England as at April 2021.The boundaries available are:(BFE) Full resolution - extent of the realm (usually this is the Mean Low Water mark but in some cases boundaries extend beyond this to include off shore islands).Contains both Ordnance Survey and ONS Intellectual Property Rights.REST URL of ArcGIS for INSPIRE View Service – https://ons-inspire.esriuk.com/arcgis/rest/services/Health_Boundaries/Clinical_Commissioning_Groups_April_2021_EN_BFE/MapServer/exts/InspireViewREST URL of ArcGIS for INSPIRE Feature Download Service – https://ons-inspire.esriuk.com/arcgis/rest/services/Health_Boundaries/Clinical_Commissioning_Groups_April_2021_EN_BFE/MapServer/exts/InspireFeatureDownloadREST URL of Feature Access Service – https://ons-inspire.esriuk.com/arcgis/rest/services/Health_Boundaries/Clinical_Commissioning_Groups_April_2021_EN_BFE/FeatureServer</gco:CharacterString>
+                <gco:CharacterString>This file contains the digital vector boundaries for Clinical Commissioning Groups in England as at April 2021.The boundaries available are:(BUC) Ultra generalised (500m) - clipped to the coastline (Mean High Water mark).Contains both Ordnance Survey and ONS Intellectual Property Rights.REST URL of ArcGIS for INSPIRE View Service – https://ons-inspire.esriuk.com/arcgis/rest/services/Health_Boundaries/Clinical_Commissioning_Groups_April_2021_EN_BUC/MapServer/exts/InspireViewREST URL of ArcGIS for INSPIRE Feature Download Service – https://ons-inspire.esriuk.com/arcgis/rest/services/Health_Boundaries/Clinical_Commissioning_Groups_April_2021_EN_BUC/MapServer/exts/InspireFeatureDownloadREST URL of Feature Access Service – https://ons-inspire.esriuk.com/arcgis/rest/services/Health_Boundaries/Clinical_Commissioning_Groups_April_2021_EN_BUC/FeatureServer</gco:CharacterString>
             </abstract>
             <purpose>
                 <gco:CharacterString>Boundaries</gco:CharacterString>
