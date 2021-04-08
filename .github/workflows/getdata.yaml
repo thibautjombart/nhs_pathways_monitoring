@@ -1,12 +1,6 @@
 name: get_and_clean_data
 
 on:
-
-  push:
-    branches:
-      - main
-      - master
-
   schedule:
     - cron:  '30 1 * * *'
 
