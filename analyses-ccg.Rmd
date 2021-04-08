@@ -115,7 +115,7 @@ tmp <- attributes(counts_ccg_all)
 
 counts_ccg_all <- tidyr::complete(
   counts_ccg_all,
-  tidyr::expand(counts_ccg_all,date_index, ccg_name), 
+  tidyr::expand(counts_ccg_all, date_index, ccg_name),
   fill = list(count = 0)
 )
 
@@ -288,12 +288,12 @@ class(res_ccg_all) <- oclass
 
 
 ```{r ccg_map, echo = FALSE}
-ccg_shape <- st_read(file.path("data", "shapefile", "ccg_2020.shp")) 
+ccg_shape <- st_read(file.path("data", "shapefile", "ccg_2021.shp"))
 
 # create same matching names for ccg
 ccg_shape_aligned <- ccg_shape %>%
   mutate(
-    ccg = to_snake_case(ccg20nm),
+    ccg = to_snake_case(CCG21NM),
     ccg = gsub("_ccg", "", ccg, fixed = TRUE),
     ccg = recode(ccg, "nhs_central_london_westminster" = "nhs_central_london_(westminster)") 
   ) 
@@ -308,11 +308,16 @@ r_ccg <- counts_ccg_all %>%
   growth_rate() %>%
   rename("ccg" = "ccg_name")
 
+r_plot <- counts_ccg_all %>% keep_last(3*7) %>% fit_curve(model = "poisson") %>%
+  mutate(ccg = gsub("nhs_", "", ccg_name, fixed = TRUE))
+r_plot <- split(r_plot, r_plot$ccg)
+individual_r_plots <- lapply(r_plot, plot)
+
 CCG <- ccg_shape_aligned %>%
   full_join(., ccg_all_stats, by = "ccg") %>%
   full_join(., r_ccg, by = "ccg") %>%
   filter(ccg != "null") %>% # there is a single ccg set as null I've removed it #
-  select(ccg20nm, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, r, r_lower, r_upper, geometry) %>%
+  select(CCG21NM, ccg, n_recent_outliers, n_recent_increases, n_recent_decreases, r, r_lower, r_upper, geometry) %>%
   mutate(
     n_recent_increases = factor(n_recent_increases),
     n_recent_decreases = factor(n_recent_decreases),
@@ -320,15 +325,18 @@ CCG <- ccg_shape_aligned %>%
                         ifelse(r_lower < 0 & r_upper < 0, "confident_decay",
                                "equivocal")),
     ccg = gsub("nhs_", "", ccg, fixed = TRUE),
-    plots = individual_plots[ccg]
+    plots = individual_plots[ccg],
+    r_plots = individual_r_plots[ccg]
   ) %>% 
   rename( # tidying the column titles for mapview
-    `CCG Name` = ccg20nm,
+    `CCG Name` = CCG21NM,
     `Number of outlier days (last week)` = n_recent_outliers,
     `Days increased` = n_recent_increases,
     `Number of days decreased` = n_recent_decreases
   ) %>%
   st_transform(., "WGS84")
+
+
 ```
 
 
@@ -349,10 +357,11 @@ information on *r* and its relationship with the reproduction number, *R*.
 ``` {r combined, results="markup"}
 CCG <- select(CCG, -ccg)
 plots <- CCG$plots
+r_plots <- CCG$r_plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
 factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
-contpal <- colorNumeric(palette = "RdYlBu",  domain = CCG$r, reverse = T)
+contpal <- colorNumeric(palette = "RdYlBu",  domain = c(-0.1, 0.1), reverse = T)
 
 leaflet(CCG,
         height = 620) %>%
@@ -379,8 +388,8 @@ leaflet(CCG,
               fillOpacity = 0.9, 
               weight = 1,
               smoothFactor = 0.2,
-              label = CCG$`CCG Name`,
-              popup = popupGraph(plots,
+              label = paste0(CCG$`CCG Name`, ": r = ", round(CCG$r, 3)),
+              popup = popupGraph(r_plots,
                                  width = 260,
                                  height = 180),
               highlightOptions = highlightOptions(color = "black", weight = 2,
