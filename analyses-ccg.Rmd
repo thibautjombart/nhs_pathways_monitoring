@@ -351,7 +351,11 @@ r_plots <- CCG$r_plots
 
 # Set the palette explicitly as I want 0 to have a high alpha
 factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
-contpal <- colorNumeric(palette = "RdYlBu",  domain = c(-0.1, 0.1), reverse = T)
+
+greatest <- ifelse(-min(CCG$r) >= max(CCG$r), -min(CCG$r), max(CCG$r)) %>%
+  plyr::round_any(., 0.01, ceiling) 
+
+contpal <- colorNumeric(palette = "RdYlBu",  domain = c(-greatest, greatest), reverse = T)
 
 leaflet(CCG,
         height = 620) %>%
