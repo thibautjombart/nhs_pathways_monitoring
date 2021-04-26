@@ -193,7 +193,7 @@ res_ccg_all <- asmodee(
     counts_ccg_all,
     models,
     method = evaluate_aic,
-    fixed_k = 7,
+    k = 7,
     alpha = 0.05
 )
 
@@ -202,22 +202,19 @@ res_ccg_all <- asmodee(
 ##   asmodee(counts_ccg_all[[i]],
 ##           models,
 ##           method = evaluate_aic,
-##           fixed_k = 7,
+##           k = 7,
 ##           alpha = 0.05)
 ## }
 
 ## derive summary stats
-ccg_all_stats <- 
-  summary(res_ccg_all) %>% 
-  arrange()
 ccg_all_stats <- summary(res_ccg_all)
 ccg_all_stats$last_pred <- vapply(
-  res_ccg_all, 
+  res_ccg_all$output, 
   function(x) tail(x$results$estimate, 1),
   double(1)
 )
 ccg_all_stats <- 
-  rename(ccg_all_stats, ccg = group) %>% 
+  rename(ccg_all_stats, ccg = ccg_name) %>% 
   arrange(ccg_all_stats, desc(n_recent_increases), desc(last_pred)) %>%
   tibble()
 
@@ -258,7 +255,7 @@ ccg_outliers_summary  %>%
 
 ```{r echo = FALSE}
 
-n_figs <- length(res_ccg_all)
+n_figs <- length(res_ccg_all$output)
 
 ```
 
@@ -271,10 +268,9 @@ ccg_order <- ccg_all_stats %>%
           desc(n_recent_outliers)) %>%
   pull(ccg)
 
-oclass <- class(res_ccg_all)
-res_ccg_all <- res_ccg_all[ccg_order]
-names(res_ccg_all) <- sub("nhs_", "", names(res_ccg_all))
-class(res_ccg_all) <- oclass
+res_ccg_all <- res_ccg_all[match(ccg_order, res_ccg_all$ccg_name),]
+
+names(res_ccg_all$output) <- sub("nhs_", "", names(res_ccg_all$output))
 ```
 
 
@@ -290,7 +286,8 @@ ccg_shape_aligned <- ccg_shape %>%
   ) 
 
 # make plots
-individual_plots <- lapply(res_ccg_all, plot, guide = FALSE)
+individual_plots <- lapply(res_ccg_all$output, plot, guide = FALSE)
+names(individual_plots) <- gsub("nhs_", "", res_ccg_all$ccg_name, fixed = TRUE)
 
 # calculate growth for ccgs
 r_ccg <- counts_ccg_all %>%

@@ -171,7 +171,7 @@ res_england <- asmodee(
   models,
   method = evaluate_aic,
   alpha = 0.05,
-  fixed_k = 7
+  k = 7
 )
 
 plot(res_england) +
@@ -223,7 +223,7 @@ res_nhs_region <- asmodee(
   models,
   method = evaluate_aic,
   alpha = 0.05,
-  fixed_k = 7
+  k = 7
 )
 
 plot(res_nhs_region)
@@ -276,20 +276,21 @@ res_england_age <- asmodee(
   models,
   method = evaluate_aic,
   alpha = 0.05,
-  fixed_k = 7
+  k = 7
 )
 
 ```
 
 ```{r echo = FALSE}
 
-n_figs <- length(res_england_age)
+n_figs <- length(res_england_age$output)
 
 ```
 
 ```{r fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 70} 
 
-res_england_age <- res_england_age[sort(names(res_england_age))]
+groups <- attr(res_england_age, "groups")
+res_england_age <- res_england_age[order(res_england_age[groups]), ]
 plot(res_england_age, ncol = 3)
 
 ```
@@ -335,20 +336,20 @@ res_nhs_region_age <- asmodee(
   models,
   method = evaluate_aic,
   alpha = 0.05,
-  fixed_k = 7
+  k = 7
 )
 
 ```
 
 ```{r echo = FALSE}
 
-n_figs <- length(res_nhs_region_age)
+n_figs <- length(res_nhs_region_age$output)
 
 ```
 
 ```{r fig.height = 2 * round(n_figs / 3), out.width = "100%", dpi = 70} 
 
-res_nhs_region_age <- res_nhs_region_age[sort(names(res_nhs_region_age))]
+res_nhs_region_age[ do.call(order, res_nhs_region_age[groups]), ]
 plot(res_nhs_region_age, ncol = 3)
 
 ```
