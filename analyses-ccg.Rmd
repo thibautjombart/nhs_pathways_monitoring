@@ -357,13 +357,13 @@ ccg_nb <- poly2nb(ccg_clusters, row.names = ccg_clusters$`CCG Name`, queen = TRU
 ccg_nb_lw <- nb2listw(ccg_nb) # spatial weights for neighbour lists 
 CCG$r_lagged_mean <- lag.listw(ccg_nb_lw, ccg_clusters$r) # producing lagged weights
 
-# Set the palette explicitly as I want 0 to have a high alpha
+# Set the palette explicitly
 factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
 
 greatest <- ifelse(-min(CCG$r) >= max(CCG$r), -min(CCG$r), max(CCG$r)) %>%
   plyr::round_any(., 0.01, ceiling) 
 
-contpal <- colorNumeric(palette = "RdYlBu",  domain = c(-greatest, greatest), reverse = T)
+contpal <- colorNumeric(palette = "RdYlBu",  domain = c(-0.1, 0.1), reverse = T)
 
 leaflet(CCG,
         height = 620) %>%
@@ -388,7 +388,7 @@ leaflet(CCG,
             group = "Outliers") %>%
   addPolygons(color = "black",
               fillColor = ~contpal(r), 
-              fillOpacity = 0.9, 
+              fillOpacity = 1, 
               weight = 1,
               smoothFactor = 0.2,
               label = paste0(CCG$`CCG Name`, ": r = ", round(CCG$r, 3)),
@@ -400,7 +400,7 @@ leaflet(CCG,
               group = "Growth rate") %>%
   addPolygons(color = "black",
               fillColor = ~contpal(r_lagged_mean), 
-              fillOpacity = 0.9, 
+              fillOpacity = 1, 
               weight = 1,
               smoothFactor = 0.2,
               label = paste0(CCG$`CCG Name`, ": r = ", round(CCG$r_lagged_mean, 3)),
