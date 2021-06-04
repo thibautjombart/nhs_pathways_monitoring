@@ -27,7 +27,7 @@ jobs:
 
       - name: Install R packages for report building
         run: |
-          pkgs <- c("remotes", "distill", "trending", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "sf")
+          pkgs <- c("remotes", "distill", "trending", "ggplot2", "DT", "cowplot", "dplyr", "tibble", "tidyr", "sf", "spdep")
           install.packages(pkgs, repos = "https://cloud.r-project.org/")
           remotes::install_github("r-spatial/mapview@b96de52", upgrade = "never")
           remotes::install_github("r-spatial/leafpop@3da14fd", upgrade = "never")
