@@ -50,6 +50,7 @@ library(sf)
 library(i2extras)
 library(leaflet)
 library(leafpop)
+library(spdep)
 ```
 
 ```{r prep}
@@ -347,6 +348,14 @@ CCG <- select(CCG, -ccg)
 plots <- CCG$plots
 r_plots <- CCG$r_plots
 
+# Producing neighbours for CCGs and spatially lagged means of r
+ccg_clusters <- CCG %>%
+  select(-plots, -r_plots)
+
+ccg_nb <- poly2nb(ccg_clusters, row.names = ccg_clusters$`CCG Name`, queen = TRUE) # neighbouring clusters
+ccg_nb_lw <- nb2listw(ccg_nb) # spatial weights for neighbour lists 
+CCG$r_lagged_mean <- lag.listw(ccg_nb_lw, ccg_clusters$r) # producing lagged weights
+
 # Set the palette explicitly as I want 0 to have a high alpha
 factpal <- colorFactor(palette = "Blues", CCG$`Days increased`, alpha = T) 
 contpal <- colorNumeric(palette = "RdYlBu",  domain = c(-0.1, 0.1), reverse = T)
@@ -384,6 +393,18 @@ leaflet(CCG,
               highlightOptions = highlightOptions(color = "black", weight = 2,
                                                   bringToFront = TRUE),
               group = "Growth rate") %>%
+  addPolygons(color = "black",
+              fillColor = ~contpal(r_lagged_mean), 
+              fillOpacity = 1, 
+              weight = 1,
+              smoothFactor = 0.2,
+              label = paste0(CCG$`CCG Name`, ": r = ", round(CCG$r_lagged_mean, 3)),
+              popup = popupGraph(r_plots,
+                                 width = 260,
+                                 height = 180),
+              highlightOptions = highlightOptions(color = "black", weight = 2,
+                                                  bringToFront = TRUE),
+              group = "Spatially lagged growth rate") %>%
   addLegend("topright",
             title = "Growth rate",
             pal = contpal,
@@ -391,10 +412,9 @@ leaflet(CCG,
             values = ~r,
             group = "Growth rate") %>%
   addLayersControl(
-    baseGroups = c("Outliers", "Growth rate"),
+    baseGroups = c("Outliers", "Growth rate", "Spatially lagged growth rate"),
     options = layersControlOptions(collapsed = FALSE)
-  ) %>%
-  hideGroup("Growth rate")
+  )
 ```
 
 ### CCG by numbers of outliers
