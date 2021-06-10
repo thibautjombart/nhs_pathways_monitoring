@@ -348,6 +348,8 @@ decreases by approximately 2% every day. See this excellent
 [article](https://plus.maths.org/content/epidemic-growth-rate) for more
 information on *r* and its relationship with the reproduction number, *R*.
 
+A spatially lagged growth rate is produced from a direct neighbour spatial weights matrix based on shared land borders between CCGs. 
+
 ``` {r combined, results="markup"}
 CCG <- select(CCG, -ccg)
 plots <- CCG$plots
