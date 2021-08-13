@@ -21,7 +21,7 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@v1
 
-      - name: Install pandoc and other problematic deps
+      - name: Install pandoc and other problematic dependencies
         run: |
           brew install pandoc udunits gdal geos proj
 
