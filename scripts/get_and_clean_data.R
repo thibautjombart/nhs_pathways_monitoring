@@ -7,24 +7,24 @@ timestamp = format(Sys.time(), "%Y%m%d_T%H%M%S")
 
 # variables --------------------------------------------------------------------
 path <- paste0(
-    "https://digital.nhs.uk/",
-    "data-and-information/",
-    "publications/",
-    "statistical/",
-    "mi-potential-covid-19-symptoms-reported-through-nhs-pathways-and-111-online/",
-    "latest/"
+  "https://digital.nhs.uk/",
+  "data-and-information/",
+  "publications/",
+  "statistical/",
+  "mi-potential-covid-19-symptoms-reported-through-nhs-pathways-and-111-online/",
+  "latest/"
 )
 
 column_classes <- c(rep("character", 6), "integer")
 
 new_column_names <- c(
-    "site_type",
-    "date",
-    "sex",
-    "age",
-    "ccg_code",
-    "ccg_name",
-    "count"
+  "site_type",
+  "date",
+  "sex",
+  "age",
+  "ccg_code",
+  "ccg_name",
+  "count"
 )
 
 # nhs_region_lookup_path <- file.path(
@@ -34,9 +34,9 @@ new_column_names <- c(
 # )
 
 nhs_region_lookup_path <- file.path(
-    "data",
-    "lookups",
-    "ccg_info_april_2021.csv"
+  "data",
+  "lookups",
+  "ccg_info_april_2021.csv"
 )
 
 # nhs_region_lookup_names <- c(
@@ -46,50 +46,55 @@ nhs_region_lookup_path <- file.path(
 # )
 
 nhs_region_lookup_names <- c(
-    ccg_name = "name",
-    ccg_new_name = "new_name",
-    nhs_region = "nhs_region"
+  ccg_name = "name",
+  ccg_new_name = "new_name",
+  nhs_region = "nhs_region"
 )
 
 
 # scraping ---------------------------------------------------------------------
 is_allowed <- paths_allowed(paths = path)
 if (is_allowed) {
-    url <- path
-    scraped_links <- read_html(url)
-    scraped_links <- html_nodes(scraped_links, "a")
-    scraped_links <- html_attr(scraped_links, "href")
+  url <- path
+  scraped_links <- read_html(url)
+  scraped_links <- html_nodes(scraped_links, "a")
+  scraped_links <- html_attr(scraped_links, "href")
 } else {
-    stop("You shouldn't really scrape this site.  Have they got an api to use?")
+  stop("You shouldn't really scrape this site.  Have they got an api to use?")
 }
 
 # get data ---------------------------------------------------------------------
 pathway_calls <- URLencode("NHS Pathways Covid-19 data 20")
 pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
 if (length(pathway_calls) == 0L) {
-    pathway_calls <- URLencode("NHS Pathways Covid-19 data_20")
-    pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+  pathway_calls <- URLencode("NHS Pathways Covid-19 data_20")
+  pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
 }
 if (length(pathway_calls) == 0L) {
-    pathway_calls <- URLencode("NHS Pathways Covid-19 - 20")
-    pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+  pathway_calls <- URLencode("NHS Pathways Covid-19 - 20")
+  pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
 }
+if (length(pathway_calls) == 0L) {
+  pathway_calls <- URLencode("NHS Pathways Covid-19 data  20")
+  pathway_calls <- grep(pathway_calls, scraped_links, fixed = TRUE, value = TRUE)
+}
+
 pathways_calls_data <- read.csv(
-    url(pathway_calls),
-    na.strings = c("NA", ""),
-    colClasses = column_classes
+  url(pathway_calls),
+  na.strings = c("NA", ""),
+  colClasses = column_classes
 )
 
 pathways_online <- URLencode("111 Online Covid-19 data_20")
 pathways_online <- grep(pathways_online, scraped_links, fixed=TRUE, value = TRUE)
 if (length(pathways_online) == 0L) {
-    pathways_online <- URLencode("111 Online Covid-19 - 20")
-    pathways_online <- grep(pathways_online, scraped_links, fixed = TRUE, value = TRUE)
+  pathways_online <- URLencode("111 Online Covid-19 - 20")
+  pathways_online <- grep(pathways_online, scraped_links, fixed = TRUE, value = TRUE)
 }
 pathways_online_data <- read.csv(
-    pathways_online,
-    na.strings = c("NA", ""),
-    colClasses = column_classes[-1]
+  pathways_online,
+  na.strings = c("NA", ""),
+  colClasses = column_classes[-1]
 )
 
 # save raw data ----------------------------------------------------------------
@@ -101,8 +106,8 @@ saveRDS(pathways_online_data, file.path("data", "raw", filename))
 # merge datasets ---------------------------------------------------------------
 site_type <- rep("111_online", nrow(pathways_online_data))
 pathways_online_data <- cbind(
-    data.frame(site_type = site_type),
-    pathways_online_data
+  data.frame(site_type = site_type),
+  pathways_online_data
 )
 pathways_calls_data <- setNames(pathways_calls_data, new_column_names)
 pathways_online_data <- setNames(pathways_online_data, new_column_names)
@@ -114,15 +119,15 @@ pathways_all$ccg_name <- gsub("\\s+", "_", pathways_all$ccg_name)
 pathways_all$ccg_name <- tolower(pathways_all$ccg_name)
 
 pathways_all$date <- as.Date(
-    pathways_all$date,
-    format = "%d/%m/%Y"
+  pathways_all$date,
+  format = "%d/%m/%Y"
 )
 
 pathways_all$age <- gsub(
-    pattern = "70+ years",
-    replacement = "70-120 years",
-    x = pathways_all$age,
-    fixed = TRUE
+  pattern = "70+ years",
+  replacement = "70-120 years",
+  x = pathways_all$age,
+  fixed = TRUE
 )
 
 pathways_all$age <- gsub(" years", "", pathways_all$age)
